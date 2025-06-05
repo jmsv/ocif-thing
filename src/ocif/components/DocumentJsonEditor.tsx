@@ -30,7 +30,7 @@ export function DocumentJsonEditor({
     <div className="w-full flex-1 border-t py-2">
       <Editor
         language="json"
-        defaultValue={JSON.stringify(value, null, 2)}
+        value={JSON.stringify(value, null, 2)}
         onChange={handleChange}
         options={{
           fontSize: 12,

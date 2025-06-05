@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -7,9 +8,49 @@ import { useCanvas } from "../hooks/useCanvas";
 
 interface CanvasProviderProps {
   children: ReactNode;
+  onUpdateNodeGeometry?: (
+    nodeId: string,
+    position: number[],
+    size: number[]
+  ) => void;
 }
 
-export const CanvasProvider = ({ children }: CanvasProviderProps) => {
+export const CanvasProvider = ({
+  children,
+  onUpdateNodeGeometry,
+}: CanvasProviderProps) => {
+  const pendingUpdatesRef = useRef<Map<string, number[]>>(new Map());
+  const rafIdRef = useRef<number | null>(null);
+
+  const handleNodeDrag = useCallback(
+    (nodeId: string, position: number[]) => {
+      pendingUpdatesRef.current.set(nodeId, position);
+
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
+      rafIdRef.current = requestAnimationFrame(() => {
+        if (pendingUpdatesRef.current.size > 0 && onUpdateNodeGeometry) {
+          const updates = new Map(pendingUpdatesRef.current);
+          pendingUpdatesRef.current.clear();
+          rafIdRef.current = null;
+
+          updates.forEach((position, nodeId) => {
+            onUpdateNodeGeometry(nodeId, position, []);
+          });
+        }
+      });
+    },
+    [onUpdateNodeGeometry]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
+
   const {
     canvasRef,
     position,
@@ -22,7 +63,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     transform,
     mode,
     setMode,
-  } = useCanvas();
+    selectedNodes,
+    setSelectedNodes,
+    selectionRectangle,
+    setSelectionRectangle,
+    startNodeDrag,
+    isDraggingNodes,
+  } = useCanvas(handleNodeDrag);
 
   return (
     <CanvasContext.Provider
@@ -34,6 +81,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         transform,
         mode,
         setMode,
+        selectedNodes,
+        setSelectedNodes,
+        selectionRectangle,
+        setSelectionRectangle,
+        handleMouseUp,
+        startNodeDrag,
+        isDraggingNodes,
       }}
     >
       <div
@@ -44,8 +98,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         })}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseUp={() => handleMouseUp()}
+        onMouseLeave={() => handleMouseUp()}
       >
         {children}
       </div>

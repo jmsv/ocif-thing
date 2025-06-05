@@ -18,6 +18,7 @@ export const NodeResource = ({
         if (rep.mimeType === "text/plain") {
           return (
             <div
+              key={`${node.id}-${resource.id}`}
               style={{
                 ...baseNodeStyles,
                 width: node.size[0],
@@ -25,6 +26,8 @@ export const NodeResource = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                textAlign: "center",
+                textWrap: "balance",
               }}
             >
               {rep.content}
