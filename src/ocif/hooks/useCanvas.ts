@@ -12,6 +12,7 @@ interface UseCanvasReturn {
   position: { x: number; y: number };
   scale: number;
   setScale: (newScale: number) => void;
+  zoomBy: (delta: number, anchor?: { x: number; y: number }) => void;
   handleMouseDown: (e: React.MouseEvent) => void;
   handleMouseMove: (e: React.MouseEvent) => void;
   handleMouseUp: () => void;
@@ -30,32 +31,53 @@ export const useCanvas = (): UseCanvasReturn => {
     null
   ) as React.RefObject<HTMLDivElement>;
 
-  const setScale = useCallback(
-    (newScale: number) => {
+  const setScale = useCallback((newScale: number) => {
+    setState((prev) => ({
+      ...prev,
+      scale: Math.max(0.2, Math.min(5, newScale)),
+    }));
+  }, []);
+
+  const zoomBy = useCallback(
+    (delta: number, anchor?: { x: number; y: number }) => {
       const container = canvasRef.current;
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      let anchorX = rect.width / 2;
+      let anchorY = rect.height / 2;
+      if (anchor) {
+        anchorX = anchor.x;
+        anchorY = anchor.y;
+      }
 
-      // Calculate the point under the center relative to the current transform
-      const pointX = (centerX - state.position.x) / state.scale;
-      const pointY = (centerY - state.position.y) / state.scale;
+      setState((prev) => {
+        const minScale = 0.2;
+        const maxScale = 5;
+        const newScale = Math.max(
+          minScale,
+          Math.min(maxScale, prev.scale + delta)
+        );
+        if (newScale === prev.scale) return prev;
 
-      // Calculate new position to keep the center point in the same place
-      const newPosition = {
-        x: centerX - pointX * newScale,
-        y: centerY - pointY * newScale,
-      };
+        // Calculate the point under the anchor relative to the current transform
+        const pointX = (anchorX - prev.position.x) / prev.scale;
+        const pointY = (anchorY - prev.position.y) / prev.scale;
 
-      setState((prev) => ({
-        ...prev,
-        scale: Math.max(0.25, Math.min(5, newScale)),
-        position: newPosition,
-      }));
+        // Calculate new position to keep the anchor point in the same place
+        const newPosition = {
+          x: anchorX - pointX * newScale,
+          y: anchorY - pointY * newScale,
+        };
+
+        return {
+          ...prev,
+          scale: newScale,
+          position: newPosition,
+        };
+      });
     },
-    [state.position, state.scale]
+    []
   );
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -93,38 +115,15 @@ export const useCanvas = (): UseCanvasReturn => {
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       e.preventDefault();
-
       const container = canvasRef.current;
       if (!container) return;
-
       const rect = container.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
-
-      // Calculate the mouse position relative to the current transform
-      const pointX = (mouseX - state.position.x) / state.scale;
-      const pointY = (mouseY - state.position.y) / state.scale;
-
-      const delta = -e.deltaY;
-      const zoomFactor = 0.002;
-      const newScale = Math.max(
-        0.25,
-        Math.min(5, state.scale + delta * zoomFactor)
-      );
-
-      // Calculate new position to keep the point under mouse cursor in the same place
-      const newPosition = {
-        x: mouseX - pointX * newScale,
-        y: mouseY - pointY * newScale,
-      };
-
-      setState((prev) => ({
-        ...prev,
-        scale: newScale,
-        position: newPosition,
-      }));
+      const delta = -e.deltaY * 0.002;
+      zoomBy(delta, { x: mouseX, y: mouseY });
     },
-    [state.position, state.scale]
+    [zoomBy]
   );
 
   useEffect(() => {
@@ -142,6 +141,7 @@ export const useCanvas = (): UseCanvasReturn => {
     position: state.position,
     scale: state.scale,
     setScale,
+    zoomBy,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,

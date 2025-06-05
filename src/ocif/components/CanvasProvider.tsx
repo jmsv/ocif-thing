@@ -13,6 +13,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     position,
     scale,
     setScale,
+    zoomBy,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
@@ -25,6 +26,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         position,
         scale,
         setScale,
+        zoomBy,
         transform,
       }}
     >
