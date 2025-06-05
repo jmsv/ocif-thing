@@ -1,10 +1,25 @@
-import { Button } from "./components/ui/button";
+import { useState } from "react";
+import type { OcifDocument } from "./ocif/schema";
+import { DocumentJsonEditor } from "./ocif/components/DocumentJsonEditor";
+import { exampleHelloWorld } from "./ocif/examples/hello-world";
+import { DocumentCanvas } from "./ocif/components/DocumentCanvas";
 
 function App() {
+  const [value, setValue] = useState<OcifDocument>(exampleHelloWorld);
+
   return (
-    <div className="flex flex-col p-4 gap-2 items-center">
-      <p>hello</p>
-      <Button>button</Button>
+    <div className="grid grid-cols-[400px_1fr] grid-rows-1 h-screen">
+      <div className="flex flex-col border-r">
+        <div className="p-4">
+          <h1 className="text-xl font-bold">ocif thing</h1>
+        </div>
+
+        <DocumentJsonEditor value={value} onChange={setValue} />
+      </div>
+
+      <div className="relative">
+        <DocumentCanvas document={value} />
+      </div>
     </div>
   );
 }
