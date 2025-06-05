@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { CanvasContext } from "../contexts/CanvasContext";
 import { useCanvas } from "../hooks/useCanvas";
 
@@ -18,6 +20,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     handleMouseMove,
     handleMouseUp,
     transform,
+    mode,
+    setMode,
   } = useCanvas();
 
   return (
@@ -28,11 +32,16 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         setScale,
         zoomBy,
         transform,
+        mode,
+        setMode,
       }}
     >
       <div
         ref={canvasRef}
-        className="relative h-full w-full overflow-hidden bg-gray-50"
+        className={cn("relative h-full w-full overflow-hidden bg-gray-50", {
+          "cursor-grab active:cursor-grabbing": mode === "hand",
+          "cursor-default": mode === "select",
+        })}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

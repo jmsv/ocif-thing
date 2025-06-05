@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { CanvasMode } from "../contexts/CanvasContext";
+
 interface CanvasState {
   position: { x: number; y: number };
   scale: number;
@@ -17,6 +19,8 @@ interface UseCanvasReturn {
   handleMouseMove: (e: React.MouseEvent) => void;
   handleMouseUp: () => void;
   transform: string;
+  mode: CanvasMode;
+  setMode: (mode: CanvasMode) => void;
 }
 
 export const useCanvas = (): UseCanvasReturn => {
@@ -26,6 +30,8 @@ export const useCanvas = (): UseCanvasReturn => {
     isDragging: false,
     dragStart: { x: 0, y: 0 },
   });
+
+  const [mode, setMode] = useState<CanvasMode>("select");
 
   const canvasRef = useRef<HTMLDivElement>(
     null
@@ -80,16 +86,20 @@ export const useCanvas = (): UseCanvasReturn => {
     []
   );
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setState((prev) => ({
-      ...prev,
-      isDragging: true,
-      dragStart: {
-        x: e.clientX - prev.position.x,
-        y: e.clientY - prev.position.y,
-      },
-    }));
-  }, []);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (mode !== "hand") return;
+      setState((prev) => ({
+        ...prev,
+        isDragging: true,
+        dragStart: {
+          x: e.clientX - prev.position.x,
+          y: e.clientY - prev.position.y,
+        },
+      }));
+    },
+    [mode]
+  );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setState((prev) => {
@@ -146,5 +156,7 @@ export const useCanvas = (): UseCanvasReturn => {
     handleMouseMove,
     handleMouseUp,
     transform: `translate(${state.position.x}px, ${state.position.y}px) scale(${state.scale})`,
+    mode,
+    setMode,
   };
 };

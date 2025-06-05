@@ -2,6 +2,7 @@ import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { OcifDocument } from "../schema";
 import { CanvasProvider } from "./CanvasProvider";
 import { NodeContainer } from "./NodeContainer";
+import { Toolbar } from "./Toolbar";
 import { ZoomControls } from "./ZoomControls";
 
 interface DocumentCanvasProps {
@@ -27,6 +28,7 @@ export const DocumentCanvas = ({ document }: DocumentCanvasProps) => {
     <CanvasProvider>
       <CanvasContent document={document} />
       <ZoomControls />
+      <Toolbar />
     </CanvasProvider>
   );
 };
