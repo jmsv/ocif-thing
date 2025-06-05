@@ -1,5 +1,4 @@
 // https://github.com/ocwg/spec/blob/main/spec/v0.5/spec.md#hello-world-example
-
 import type { OcifDocument } from "../schema";
 
 export const exampleHelloWorld: OcifDocument = {

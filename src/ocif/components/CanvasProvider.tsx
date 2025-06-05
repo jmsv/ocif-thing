@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { useCanvas } from "../hooks/useCanvas";
+
 import { CanvasContext } from "../contexts/CanvasContext";
+import { useCanvas } from "../hooks/useCanvas";
 
 interface CanvasProviderProps {
   children: ReactNode;
@@ -29,7 +30,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     >
       <div
         ref={canvasRef}
-        className="w-full h-full relative bg-gray-50 overflow-hidden"
+        className="relative h-full w-full overflow-hidden bg-gray-50"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

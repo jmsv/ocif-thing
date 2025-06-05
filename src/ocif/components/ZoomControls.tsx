@@ -1,5 +1,6 @@
-import { useCanvasContext } from "../hooks/useCanvasContext";
 import { Minus, Plus } from "lucide-react";
+
+import { useCanvasContext } from "../hooks/useCanvasContext";
 
 export const ZoomControls = () => {
   const { scale, setScale } = useCanvasContext();
@@ -17,27 +18,27 @@ export const ZoomControls = () => {
   };
 
   return (
-    <div className="absolute border p-1 bottom-4 right-4 flex items-center bg-background rounded-lg">
+    <div className="absolute right-4 bottom-4 flex items-center rounded-lg border bg-background p-1">
       <button
         onClick={handleZoomOut}
-        className="w-8 h-8 rounded-sm flex items-center justify-center hover:bg-accent transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-sm transition-colors hover:bg-accent"
         aria-label="Zoom out"
       >
-        <Minus className="w-5 h-5" />
+        <Minus className="h-5 w-5" />
       </button>
       <button
         onClick={handleResetZoom}
-        className="w-16 h-8 rounded-sm flex items-center justify-center text-sm font-medium hover:bg-accent transition-colors"
+        className="flex h-8 w-16 items-center justify-center rounded-sm text-sm font-medium transition-colors hover:bg-accent"
         aria-label="Reset zoom to 100%"
       >
         {Math.round(scale * 100)}%
       </button>
       <button
         onClick={handleZoomIn}
-        className="w-8 h-8 rounded-sm flex items-center justify-center hover:bg-accent transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-sm transition-colors hover:bg-accent"
         aria-label="Zoom in"
       >
-        <Plus className="w-5 h-5" />
+        <Plus className="h-5 w-5" />
       </button>
     </div>
   );

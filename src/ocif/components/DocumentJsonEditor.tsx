@@ -1,4 +1,5 @@
 import { Editor } from "@monaco-editor/react";
+
 import { type OcifDocument, validateOcifBase } from "../schema";
 
 interface DocumentJsonEditorProps {

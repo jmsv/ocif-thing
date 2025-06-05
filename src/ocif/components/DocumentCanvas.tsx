@@ -1,7 +1,7 @@
-import type { OcifDocument } from "../schema";
-import { NodeContainer } from "./NodeContainer";
-import { CanvasProvider } from "./CanvasProvider";
 import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { OcifDocument } from "../schema";
+import { CanvasProvider } from "./CanvasProvider";
+import { NodeContainer } from "./NodeContainer";
 import { ZoomControls } from "./ZoomControls";
 
 interface DocumentCanvasProps {

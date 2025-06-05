@@ -1,14 +1,15 @@
 import { useState } from "react";
-import type { OcifDocument } from "./ocif/schema";
+
+import { DocumentCanvas } from "./ocif/components/DocumentCanvas";
 import { DocumentJsonEditor } from "./ocif/components/DocumentJsonEditor";
 import { exampleHelloWorld } from "./ocif/examples/hello-world";
-import { DocumentCanvas } from "./ocif/components/DocumentCanvas";
+import type { OcifDocument } from "./ocif/schema";
 
 function App() {
   const [value, setValue] = useState<OcifDocument>(exampleHelloWorld);
 
   return (
-    <div className="grid grid-cols-[400px_1fr] grid-rows-1 h-screen">
+    <div className="grid h-screen grid-cols-[400px_1fr] grid-rows-1">
       <div className="flex flex-col border-r">
         <div className="p-4">
           <h1 className="text-xl font-bold">ocif thing</h1>
