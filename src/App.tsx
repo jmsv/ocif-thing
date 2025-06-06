@@ -3,10 +3,16 @@ import { useState } from "react";
 import { DocumentCanvas } from "./ocif/components/DocumentCanvas";
 import { DocumentJsonEditor } from "./ocif/components/DocumentJsonEditor";
 import { exampleHelloWorld } from "./ocif/examples/hello-world";
+import { useCanvasEditor } from "./ocif/hooks/useCanvasEditor";
 import type { OcifDocument } from "./ocif/schema";
 
 function App() {
   const [value, setValue] = useState<OcifDocument>(exampleHelloWorld);
+
+  const editor = useCanvasEditor({
+    document: value,
+    onChange: setValue,
+  });
 
   return (
     <div className="grid h-screen grid-cols-[380px_1fr] grid-rows-1">
@@ -19,7 +25,7 @@ function App() {
       </div>
 
       <div className="relative">
-        <DocumentCanvas document={value} setValue={setValue} />
+        <DocumentCanvas editor={editor} />
       </div>
     </div>
   );

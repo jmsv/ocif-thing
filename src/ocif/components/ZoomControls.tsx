@@ -2,10 +2,14 @@ import { Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { CanvasEditor } from "../hooks/useCanvasEditor";
 
-export const ZoomControls = () => {
-  const { scale, setScale, zoomBy } = useCanvasContext();
+interface ZoomControlsProps {
+  editor: CanvasEditor;
+}
+
+export const ZoomControls = ({ editor }: ZoomControlsProps) => {
+  const { scale, setScale, zoomBy } = editor;
 
   return (
     <div className="absolute right-4 bottom-4 flex items-center rounded-lg border bg-background p-1 select-none">

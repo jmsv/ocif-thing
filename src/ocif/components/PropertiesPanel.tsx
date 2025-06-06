@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { CanvasEditor } from "../hooks/useCanvasEditor";
 import type { OcifDocument } from "../schema";
 
 interface PropertiesPanelProps {
   document: OcifDocument;
+  editor: CanvasEditor;
   onUpdateNodeGeometry: (
     nodeId: string,
     position: number[],
@@ -17,9 +18,10 @@ interface PropertiesPanelProps {
 
 export const PropertiesPanel = ({
   document,
+  editor,
   onUpdateNodeGeometry,
 }: PropertiesPanelProps) => {
-  const { selectedNodes } = useCanvasContext();
+  const { selectedNodes } = editor;
 
   const selectedNodeId =
     selectedNodes.size === 1 ? Array.from(selectedNodes)[0] : null;

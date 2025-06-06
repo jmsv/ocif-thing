@@ -2,10 +2,14 @@ import { Hand, MousePointer2, Square } from "lucide-react";
 
 import { Toggle } from "@/components/ui/toggle";
 
-import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { CanvasEditor } from "../hooks/useCanvasEditor";
 
-export const Toolbar = () => {
-  const { mode, setMode } = useCanvasContext();
+interface ToolbarProps {
+  editor: CanvasEditor;
+}
+
+export const Toolbar = ({ editor }: ToolbarProps) => {
+  const { mode, setMode } = editor;
 
   return (
     <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-background p-1">

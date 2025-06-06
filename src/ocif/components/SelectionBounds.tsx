@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { CanvasEditor } from "../hooks/useCanvasEditor";
 import type { OcifDocument } from "../schema";
 
 interface SelectionBoundsProps {
   document: OcifDocument;
+  editor: CanvasEditor;
   onUpdateNodeGeometry: (
     nodeId: string,
     position: number[],
@@ -55,9 +56,10 @@ const ResizeHandle = ({
 
 export const SelectionBounds = ({
   document,
+  editor,
   onUpdateNodeGeometry,
 }: SelectionBoundsProps) => {
-  const { selectedNodes, position, scale } = useCanvasContext();
+  const { selectedNodes, position, scale } = editor;
   const [isResizing, setIsResizing] = useState(false);
   const [resizeState, setResizeState] = useState<{
     handlePosition: string;

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { CanvasEditor } from "../hooks/useCanvasEditor";
 import type { OcifDocument } from "../schema";
 import { baseNodeStyles } from "../utils/node";
 import { NodeExtension } from "./NodeExtension";
@@ -9,11 +9,15 @@ import { NodeResource } from "./NodeResource";
 interface NodeContainerProps {
   node: Exclude<OcifDocument["nodes"], undefined>[number];
   document: OcifDocument;
+  editor: CanvasEditor;
 }
 
-export const NodeContainer = ({ node, document }: NodeContainerProps) => {
-  const { selectedNodes, setSelectedNodes, mode, startNodeDrag } =
-    useCanvasContext();
+export const NodeContainer = ({
+  node,
+  document,
+  editor,
+}: NodeContainerProps) => {
+  const { selectedNodes, setSelectedNodes, mode, startNodeDrag } = editor;
 
   if (
     !node.size ||

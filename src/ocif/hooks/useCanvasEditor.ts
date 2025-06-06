@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { CanvasMode, SelectionRectangle } from "../contexts/CanvasContext";
+import { nanoid } from "nanoid";
+
+import type { CanvasMode } from "../actions/types";
+import type { SelectionRectangle } from "../contexts/CanvasContext";
+import type { OcifDocument } from "../schema";
 import {
   calculateScaledDelta,
   getRelativeMousePosition,
@@ -21,39 +25,62 @@ interface CanvasState {
   rectangleStart: { x: number; y: number };
 }
 
-interface UseCanvasReturn {
-  canvasRef: React.RefObject<HTMLDivElement>;
+export interface CanvasEditor {
+  // Canvas state
+  canvasRef: React.RefObject<HTMLDivElement | null>;
   position: { x: number; y: number };
   scale: number;
+  transform: string;
+
+  // Mode and selection
+  mode: CanvasMode;
+  setMode: (mode: CanvasMode) => void;
+  selectedNodes: Set<string>;
+  setSelectedNodes: (nodes: Set<string>) => void;
+
+  // UI state
+  selectionRectangle: SelectionRectangle | null;
+  setSelectionRectangle: (rect: SelectionRectangle | null) => void;
+  drawingRectangle: SelectionRectangle | null;
+  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
+
+  // Actions
   setScale: (newScale: number) => void;
   zoomBy: (delta: number, anchor?: { x: number; y: number }) => void;
+
+  // Document manipulation
+  document: OcifDocument;
+  updateDocument: (updater: (doc: OcifDocument) => OcifDocument) => void;
+  updateNodeGeometry: (
+    nodeId: string,
+    position: number[],
+    size: number[]
+  ) => void;
+  createRectangleNode: (bounds: SelectionRectangle) => void;
+
+  // Internal event handlers (used by DocumentCanvas)
   handleMouseDown: (e: React.MouseEvent) => void;
   handleMouseMove: (e: React.MouseEvent) => void;
   handleMouseUp: (
     nodes?: Array<{ id: string; position: number[]; size: number[] }>
   ) => void;
-  transform: string;
-  mode: CanvasMode;
-  setMode: (mode: CanvasMode) => void;
-  selectedNodes: Set<string>;
-  setSelectedNodes: (nodes: Set<string>) => void;
-  selectionRectangle: SelectionRectangle | null;
-  setSelectionRectangle: (rect: SelectionRectangle | null) => void;
   startNodeDrag: (
     nodeId: string,
     e: React.MouseEvent,
     nodePositions: Map<string, number[]>
   ) => void;
   isDraggingNodes: boolean;
-  drawingRectangle: SelectionRectangle | null;
-  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
-  createRectangleNode: (bounds: SelectionRectangle) => void;
 }
 
-export const useCanvas = (
-  onNodeDrag?: (nodeId: string, position: number[]) => void,
-  onCreateRectangleNode?: (bounds: SelectionRectangle) => void
-): UseCanvasReturn => {
+interface UseCanvasEditorOptions {
+  document: OcifDocument;
+  onChange: (document: OcifDocument) => void;
+}
+
+export const useCanvasEditor = ({
+  document,
+  onChange,
+}: UseCanvasEditorOptions): CanvasEditor => {
   const [state, setState] = useState<CanvasState>({
     position: { x: 0, y: 0 },
     scale: 1,
@@ -75,9 +102,83 @@ export const useCanvas = (
   const [drawingRectangle, setDrawingRectangle] =
     useState<SelectionRectangle | null>(null);
 
-  const canvasRef = useRef<HTMLDivElement>(
-    null
-  ) as React.RefObject<HTMLDivElement>;
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const pendingUpdatesRef = useRef<Map<string, number[]>>(new Map());
+  const rafIdRef = useRef<number | null>(null);
+
+  const updateDocument = useCallback(
+    (updater: (doc: OcifDocument) => OcifDocument) => {
+      onChange(updater(document));
+    },
+    [document, onChange]
+  );
+
+  const updateNodeGeometry = useCallback(
+    (nodeId: string, position: number[], size: number[]) => {
+      // Batch updates using requestAnimationFrame for performance
+      pendingUpdatesRef.current.set(nodeId, [...position, ...size]);
+
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
+      rafIdRef.current = requestAnimationFrame(() => {
+        if (pendingUpdatesRef.current.size > 0) {
+          const updates = new Map(pendingUpdatesRef.current);
+          pendingUpdatesRef.current.clear();
+          rafIdRef.current = null;
+
+          updateDocument((doc) => ({
+            ...doc,
+            nodes: doc.nodes?.map((node) => {
+              const update = updates.get(node.id);
+              if (update) {
+                const [x, y, w, h] = update;
+                return {
+                  ...node,
+                  position: [x, y],
+                  ...(w !== undefined && h !== undefined
+                    ? { size: [w, h] }
+                    : {}),
+                };
+              }
+              return node;
+            }),
+          }));
+        }
+      });
+    },
+    [updateDocument]
+  );
+
+  const createRectangleNode = useCallback(
+    (bounds: SelectionRectangle) => {
+      const minX = Math.min(bounds.startX, bounds.endX);
+      const minY = Math.min(bounds.startY, bounds.endY);
+      const width = Math.abs(bounds.endX - bounds.startX);
+      const height = Math.abs(bounds.endY - bounds.startY);
+
+      const newNode = {
+        id: nanoid(),
+        position: [minX, minY],
+        size: [width, height],
+        data: [
+          {
+            type: "@ocif/node/rect",
+            strokeWidth: 2,
+            strokeColor: "#000",
+            fillColor: "#fff",
+          },
+        ],
+      };
+
+      updateDocument((doc) => ({
+        ...doc,
+        nodes: [...(doc.nodes || []), newNode],
+      }));
+    },
+    [updateDocument]
+  );
 
   const setScale = useCallback((newScale: number) => {
     setState((prev) => ({
@@ -108,11 +209,9 @@ export const useCanvas = (
         );
         if (newScale === prev.scale) return prev;
 
-        // Calculate the point under the anchor relative to the current transform
         const pointX = (anchorX - prev.position.x) / prev.scale;
         const pointY = (anchorY - prev.position.y) / prev.scale;
 
-        // Calculate new position to keep the anchor point in the same place
         const newPosition = {
           x: anchorX - pointX * newScale,
           y: anchorY - pointY * newScale,
@@ -230,16 +329,13 @@ export const useCanvas = (
             state.scale
           );
 
-          // Apply delta to all nodes that are being dragged
           prev.initialNodePositions.forEach((initialPos, nodeId) => {
             if (initialPos.length >= 2) {
               const newPosition = [
                 initialPos[0] + deltaX,
                 initialPos[1] + deltaY,
               ];
-              if (onNodeDrag) {
-                onNodeDrag(nodeId, newPosition);
-              }
+              updateNodeGeometry(nodeId, newPosition, []);
             }
           });
         }
@@ -263,23 +359,23 @@ export const useCanvas = (
         return prev;
       });
     },
-    [mode, state.position, state.scale, onNodeDrag]
+    [mode, state.position, state.scale, updateNodeGeometry]
   );
 
   const handleMouseUp = useCallback(
     (nodes?: Array<{ id: string; position: number[]; size: number[] }>) => {
-      if (
-        state.isDrawingRectangle &&
-        drawingRectangle &&
-        onCreateRectangleNode
-      ) {
-        const rec = { ...drawingRectangle };
+      // Handle rectangle creation BEFORE setState to prevent multiple calls
+      if (state.isDrawingRectangle && drawingRectangle) {
+        const width = Math.abs(drawingRectangle.endX - drawingRectangle.startX);
+        const height = Math.abs(
+          drawingRectangle.endY - drawingRectangle.startY
+        );
+
+        if (width > 20 && height > 20) {
+          createRectangleNode(drawingRectangle);
+        }
+
         setDrawingRectangle(null);
-
-        const width = Math.abs(rec.endX - rec.startX);
-        const height = Math.abs(rec.endY - rec.startY);
-
-        if (width > 20 && height > 20) onCreateRectangleNode(rec);
       }
 
       setState((prev) => {
@@ -299,7 +395,6 @@ export const useCanvas = (
               const nodeRight = nodeLeft + node.size[0];
               const nodeBottom = nodeTop + node.size[1];
 
-              // Check if rectangles intersect
               if (
                 nodeLeft < maxX &&
                 nodeRight > minX &&
@@ -332,9 +427,30 @@ export const useCanvas = (
       mode,
       selectionRectangle,
       drawingRectangle,
-      onCreateRectangleNode,
+      createRectangleNode,
       state.isDrawingRectangle,
     ]
+  );
+
+  const startNodeDrag = useCallback(
+    (
+      _nodeId: string,
+      e: React.MouseEvent,
+      nodePositions: Map<string, number[]>
+    ) => {
+      const container = canvasRef.current;
+      if (!container) return;
+
+      const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
+
+      setState((prev) => ({
+        ...prev,
+        isDraggingNodes: true,
+        nodeDragStart: { x: clientX, y: clientY },
+        initialNodePositions: nodePositions,
+      }));
+    },
+    []
   );
 
   const handleWheel = useCallback(
@@ -360,56 +476,46 @@ export const useCanvas = (
     }
   }, [handleWheel]);
 
-  const startNodeDrag = useCallback(
-    (
-      _nodeId: string,
-      e: React.MouseEvent,
-      nodePositions: Map<string, number[]>
-    ) => {
-      const container = canvasRef.current;
-      if (!container) return;
-
-      const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
-
-      setState((prev) => ({
-        ...prev,
-        isDraggingNodes: true,
-        nodeDragStart: { x: clientX, y: clientY },
-        initialNodePositions: nodePositions,
-      }));
-    },
-    []
-  );
-
-  const createRectangleNode = useCallback(
-    (bounds: SelectionRectangle) => {
-      if (onCreateRectangleNode) {
-        onCreateRectangleNode(bounds);
-      }
-    },
-    [onCreateRectangleNode]
-  );
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
 
   return {
+    // Canvas state
     canvasRef,
     position: state.position,
     scale: state.scale,
-    setScale,
-    zoomBy,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
     transform: `translate(${state.position.x}px, ${state.position.y}px) scale(${state.scale})`,
+
+    // Mode and selection
     mode,
     setMode,
     selectedNodes,
     setSelectedNodes,
+
+    // UI state
     selectionRectangle,
     setSelectionRectangle,
-    startNodeDrag,
-    isDraggingNodes: state.isDraggingNodes,
     drawingRectangle,
     setDrawingRectangle,
+
+    // Actions
+    setScale,
+    zoomBy,
+
+    // Document manipulation
+    document,
+    updateDocument,
+    updateNodeGeometry,
     createRectangleNode,
+
+    // Internal event handlers
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    startNodeDrag,
+    isDraggingNodes: state.isDraggingNodes,
   };
 };
