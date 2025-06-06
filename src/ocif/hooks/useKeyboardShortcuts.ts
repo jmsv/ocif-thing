@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { nanoid } from "nanoid";
+
 import type { OcifDocument } from "../schema";
 
 interface CopiedNode {
@@ -54,7 +56,7 @@ export const useKeyboardShortcuts = ({
           // Create new node with offset position
           const newNode = {
             ...node,
-            id: `${node.id}-copy-${Date.now()}`,
+            id: nanoid(),
             position: [
               (node.position?.[0] || 0) + 20,
               (node.position?.[1] || 0) + 20,
@@ -65,7 +67,7 @@ export const useKeyboardShortcuts = ({
           if (resource) {
             const newResource = {
               ...resource,
-              id: `${resource.id}-copy-${Date.now()}`,
+              id: nanoid(),
             };
             newResources.push(newResource);
             newNode.resource = newResource.id;

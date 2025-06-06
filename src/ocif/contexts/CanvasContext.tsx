@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export type CanvasMode = "select" | "hand";
+export type CanvasMode = "select" | "hand" | "rectangle";
 
 export interface SelectionRectangle {
   startX: number;

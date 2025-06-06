@@ -95,6 +95,7 @@ export const CanvasProvider = ({
         className={cn("relative h-full w-full overflow-hidden bg-gray-50", {
           "cursor-grab active:cursor-grabbing": mode === "hand",
           "cursor-default": mode === "select",
+          "cursor-crosshair": mode === "rectangle",
         })}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
