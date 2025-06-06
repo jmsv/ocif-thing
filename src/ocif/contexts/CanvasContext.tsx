@@ -30,6 +30,9 @@ export interface CanvasContextType {
     nodePositions: Map<string, number[]>
   ) => void;
   isDraggingNodes: boolean;
+  drawingRectangle: SelectionRectangle | null;
+  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
+  createRectangleNode: (bounds: SelectionRectangle) => void;
 }
 
 export const CanvasContext = createContext<CanvasContextType | null>(null);

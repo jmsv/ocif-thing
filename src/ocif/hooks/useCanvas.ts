@@ -17,6 +17,8 @@ interface CanvasState {
   isDraggingNodes: boolean;
   nodeDragStart: { x: number; y: number };
   initialNodePositions: Map<string, number[]>;
+  isDrawingRectangle: boolean;
+  rectangleStart: { x: number; y: number };
 }
 
 interface UseCanvasReturn {
@@ -43,10 +45,14 @@ interface UseCanvasReturn {
     nodePositions: Map<string, number[]>
   ) => void;
   isDraggingNodes: boolean;
+  drawingRectangle: SelectionRectangle | null;
+  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
+  createRectangleNode: (bounds: SelectionRectangle) => void;
 }
 
 export const useCanvas = (
-  onNodeDrag?: (nodeId: string, position: number[]) => void
+  onNodeDrag?: (nodeId: string, position: number[]) => void,
+  onCreateRectangleNode?: (bounds: SelectionRectangle) => void
 ): UseCanvasReturn => {
   const [state, setState] = useState<CanvasState>({
     position: { x: 0, y: 0 },
@@ -58,11 +64,15 @@ export const useCanvas = (
     isDraggingNodes: false,
     nodeDragStart: { x: 0, y: 0 },
     initialNodePositions: new Map(),
+    isDrawingRectangle: false,
+    rectangleStart: { x: 0, y: 0 },
   });
 
   const [mode, setMode] = useState<CanvasMode>("select");
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
   const [selectionRectangle, setSelectionRectangle] =
+    useState<SelectionRectangle | null>(null);
+  const [drawingRectangle, setDrawingRectangle] =
     useState<SelectionRectangle | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(
@@ -154,6 +164,26 @@ export const useCanvas = (
           endX: canvasX,
           endY: canvasY,
         });
+      } else if (mode === "rectangle") {
+        const { x: canvasX, y: canvasY } = screenToCanvas(
+          clientX,
+          clientY,
+          state.position,
+          state.scale
+        );
+
+        setState((prev) => ({
+          ...prev,
+          isDrawingRectangle: true,
+          rectangleStart: { x: canvasX, y: canvasY },
+        }));
+
+        setDrawingRectangle({
+          startX: canvasX,
+          startY: canvasY,
+          endX: canvasX,
+          endY: canvasY,
+        });
       }
     },
     [mode, state.position, state.scale, state.isDraggingNodes]
@@ -214,6 +244,22 @@ export const useCanvas = (
           });
         }
 
+        if (prev.isDrawingRectangle && mode === "rectangle") {
+          const { x: canvasX, y: canvasY } = screenToCanvas(
+            clientX,
+            clientY,
+            state.position,
+            state.scale
+          );
+
+          setDrawingRectangle({
+            startX: prev.rectangleStart.x,
+            startY: prev.rectangleStart.y,
+            endX: canvasX,
+            endY: canvasY,
+          });
+        }
+
         return prev;
       });
     },
@@ -222,6 +268,20 @@ export const useCanvas = (
 
   const handleMouseUp = useCallback(
     (nodes?: Array<{ id: string; position: number[]; size: number[] }>) => {
+      if (
+        state.isDrawingRectangle &&
+        drawingRectangle &&
+        onCreateRectangleNode
+      ) {
+        const rec = { ...drawingRectangle };
+        setDrawingRectangle(null);
+
+        const width = Math.abs(rec.endX - rec.startX);
+        const height = Math.abs(rec.endY - rec.startY);
+
+        if (width > 20 && height > 20) onCreateRectangleNode(rec);
+      }
+
       setState((prev) => {
         if (prev.isSelecting && selectionRectangle && nodes) {
           const rect = selectionRectangle;
@@ -259,6 +319,7 @@ export const useCanvas = (
           isDragging: false,
           isSelecting: false,
           isDraggingNodes: false,
+          isDrawingRectangle: false,
           initialNodePositions: new Map(),
         };
       });
@@ -267,7 +328,13 @@ export const useCanvas = (
         setSelectionRectangle(null);
       }
     },
-    [mode, selectionRectangle]
+    [
+      mode,
+      selectionRectangle,
+      drawingRectangle,
+      onCreateRectangleNode,
+      state.isDrawingRectangle,
+    ]
   );
 
   const handleWheel = useCallback(
@@ -314,6 +381,15 @@ export const useCanvas = (
     []
   );
 
+  const createRectangleNode = useCallback(
+    (bounds: SelectionRectangle) => {
+      if (onCreateRectangleNode) {
+        onCreateRectangleNode(bounds);
+      }
+    },
+    [onCreateRectangleNode]
+  );
+
   return {
     canvasRef,
     position: state.position,
@@ -332,5 +408,8 @@ export const useCanvas = (
     setSelectionRectangle,
     startNodeDrag,
     isDraggingNodes: state.isDraggingNodes,
+    drawingRectangle,
+    setDrawingRectangle,
+    createRectangleNode,
   };
 };

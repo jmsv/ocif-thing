@@ -42,6 +42,7 @@ export function DocumentJsonEditor({
           glyphMargin: false,
           cursorSmoothCaretAnimation: "on",
           minimap: { enabled: false },
+          tabSize: 2,
         }}
       />
     </div>

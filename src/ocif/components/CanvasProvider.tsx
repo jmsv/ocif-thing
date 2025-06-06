@@ -3,21 +3,30 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { CanvasContext } from "../contexts/CanvasContext";
+import {
+  CanvasContext,
+  type SelectionRectangle,
+} from "../contexts/CanvasContext";
 import { useCanvas } from "../hooks/useCanvas";
 
 interface CanvasProviderProps {
   children: ReactNode;
+  document?: {
+    nodes?: Array<{ id: string; position?: number[]; size?: number[] }>;
+  };
   onUpdateNodeGeometry?: (
     nodeId: string,
     position: number[],
     size: number[]
   ) => void;
+  onCreateRectangleNode?: (bounds: SelectionRectangle) => void;
 }
 
 export const CanvasProvider = ({
   children,
+  document,
   onUpdateNodeGeometry,
+  onCreateRectangleNode,
 }: CanvasProviderProps) => {
   const pendingUpdatesRef = useRef<Map<string, number[]>>(new Map());
   const rafIdRef = useRef<number | null>(null);
@@ -69,7 +78,20 @@ export const CanvasProvider = ({
     setSelectionRectangle,
     startNodeDrag,
     isDraggingNodes,
-  } = useCanvas(handleNodeDrag);
+    drawingRectangle,
+    setDrawingRectangle,
+    createRectangleNode,
+  } = useCanvas(handleNodeDrag, onCreateRectangleNode);
+
+  const handleMouseUpWithNodes = useCallback(() => {
+    const nodes =
+      document?.nodes?.map((node) => ({
+        id: node.id,
+        position: node.position || [0, 0],
+        size: node.size || [0, 0],
+      })) || [];
+    handleMouseUp(nodes);
+  }, [document?.nodes, handleMouseUp]);
 
   return (
     <CanvasContext.Provider
@@ -88,6 +110,9 @@ export const CanvasProvider = ({
         handleMouseUp,
         startNodeDrag,
         isDraggingNodes,
+        drawingRectangle,
+        setDrawingRectangle,
+        createRectangleNode,
       }}
     >
       <div
@@ -99,8 +124,8 @@ export const CanvasProvider = ({
         })}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onMouseUp={() => handleMouseUp()}
-        onMouseLeave={() => handleMouseUp()}
+        onMouseUp={handleMouseUpWithNodes}
+        onMouseLeave={handleMouseUpWithNodes}
       >
         {children}
       </div>
