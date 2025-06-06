@@ -9,7 +9,7 @@ function App() {
   const [value, setValue] = useState<OcifDocument>(exampleHelloWorld);
 
   return (
-    <div className="grid h-screen grid-cols-[360px_1fr] grid-rows-1">
+    <div className="grid h-screen grid-cols-[380px_1fr] grid-rows-1">
       <div className="flex flex-col border-r">
         <div className="p-4">
           <h1 className="text-xl font-bold">ocif thing</h1>

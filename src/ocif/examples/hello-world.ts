@@ -18,6 +18,19 @@ export const exampleHelloWorld: OcifDocument = {
         },
       ],
     },
+    {
+      id: "n2",
+      position: [250, 150],
+      size: [133, 100],
+      data: [
+        {
+          type: "@ocif/node/oval",
+          strokeWidth: 3,
+          strokeColor: "#ff0000",
+          fillColor: "#ff000055",
+        },
+      ],
+    },
   ],
   resources: [
     {

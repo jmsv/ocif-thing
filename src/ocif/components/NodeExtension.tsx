@@ -12,7 +12,10 @@ export const NodeExtension = ({
     return null;
   }
 
-  if (extension.type === "@ocif/node/rect") {
+  if (
+    extension.type === "@ocif/node/rect" ||
+    extension.type === "@ocif/node/oval"
+  ) {
     const extensionRect = extension as OcifCoreRect;
 
     return (
@@ -24,6 +27,8 @@ export const NodeExtension = ({
           borderWidth: extensionRect.strokeWidth,
           borderColor: extensionRect.strokeColor,
           backgroundColor: extensionRect.fillColor,
+          borderRadius:
+            extension.type === "@ocif/node/oval" ? "50%" : undefined,
         }}
       />
     );

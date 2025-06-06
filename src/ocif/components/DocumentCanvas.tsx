@@ -6,6 +6,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import type { OcifDocument } from "../schema";
 import { CanvasProvider } from "./CanvasProvider";
 import { NodeContainer } from "./NodeContainer";
+import { PropertiesPanel } from "./PropertiesPanel";
 import { SelectionBounds } from "./SelectionBounds";
 import { Toolbar } from "./Toolbar";
 import { ZoomControls } from "./ZoomControls";
@@ -84,6 +85,11 @@ const CanvasContent = ({ document, setValue }: DocumentCanvasProps) => {
       )}
 
       <SelectionBounds
+        document={document}
+        onUpdateNodeGeometry={updateNodeGeometry}
+      />
+
+      <PropertiesPanel
         document={document}
         onUpdateNodeGeometry={updateNodeGeometry}
       />
