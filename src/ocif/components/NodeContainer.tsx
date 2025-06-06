@@ -56,9 +56,7 @@ export const NodeContainer = ({ node, document }: NodeContainerProps) => {
 
   return (
     <div
-      className={cn({
-        "ring-2 ring-blue-500 ring-offset-1": isSelected,
-      })}
+      className={cn({ "ring ring-blue-500": isSelected })}
       style={{
         ...baseNodeStyles,
         width: node.size[0],

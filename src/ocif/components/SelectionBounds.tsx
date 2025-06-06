@@ -44,7 +44,7 @@ const ResizeHandle = ({
   return (
     <div
       className={cn(
-        "pointer-events-auto absolute h-2 w-2 rounded-sm border border-white bg-blue-500 hover:bg-blue-600",
+        "pointer-events-auto absolute h-3 w-3 rounded-sm border-2 border-white bg-blue-500 hover:bg-blue-600",
         handlePositions[position as keyof typeof handlePositions]
       )}
       style={{ cursor }}
@@ -123,22 +123,12 @@ export const SelectionBounds = ({
           break;
       }
 
-      // Ensure minimum size
-      const minWidth = 10;
-      const minHeight = 10;
-      if (newBounds.right - newBounds.left < minWidth) {
-        if (resizeState.handlePosition.includes("left")) {
-          newBounds.left = newBounds.right - minWidth;
-        } else {
-          newBounds.right = newBounds.left + minWidth;
-        }
+      // Swap bounds if needed to maintain positive dimensions
+      if (newBounds.right < newBounds.left) {
+        [newBounds.left, newBounds.right] = [newBounds.right, newBounds.left];
       }
-      if (newBounds.bottom - newBounds.top < minHeight) {
-        if (resizeState.handlePosition.includes("top")) {
-          newBounds.top = newBounds.bottom - minHeight;
-        } else {
-          newBounds.bottom = newBounds.top + minHeight;
-        }
+      if (newBounds.bottom < newBounds.top) {
+        [newBounds.top, newBounds.bottom] = [newBounds.bottom, newBounds.top];
       }
 
       // Calculate dimensions for scaling
@@ -222,9 +212,6 @@ export const SelectionBounds = ({
 
   if (!bounds) return null;
 
-  const width = bounds.right - bounds.left;
-  const height = bounds.bottom - bounds.top;
-
   const handleMouseDown = (handlePosition: string) => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -244,14 +231,22 @@ export const SelectionBounds = ({
     });
   };
 
+  // Calculate the visual bounds for rendering
+  const visualBounds = {
+    left: Math.min(bounds.left, bounds.right),
+    top: Math.min(bounds.top, bounds.bottom),
+    width: Math.abs(bounds.right - bounds.left),
+    height: Math.abs(bounds.bottom - bounds.top),
+  };
+
   return (
     <div
-      className="pointer-events-none absolute border-2 border-blue-500"
+      className="pointer-events-none absolute border-2 border-blue-500/50"
       style={{
-        left: bounds.left * scale + position.x,
-        top: bounds.top * scale + position.y,
-        width: width * scale,
-        height: height * scale,
+        left: visualBounds.left * scale + position.x,
+        top: visualBounds.top * scale + position.y,
+        width: visualBounds.width * scale,
+        height: visualBounds.height * scale,
       }}
     >
       {/* Corner handles */}
