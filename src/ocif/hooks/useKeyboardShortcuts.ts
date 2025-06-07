@@ -7,6 +7,7 @@ import { moveSelectedNodes } from "../actions/moveSelectedNodes";
 import { pasteNodes } from "../actions/pasteNodes";
 import { selectAllNodes } from "../actions/selectAllNodes";
 import type { CopiedNode } from "../actions/types";
+import type { CanvasMode } from "../contexts/CanvasContext";
 import type { CanvasEditor } from "./useCanvasEditor";
 
 interface UseKeyboardShortcutsProps {
@@ -15,12 +16,21 @@ interface UseKeyboardShortcutsProps {
 
 export const useKeyboardShortcuts = ({ editor }: UseKeyboardShortcutsProps) => {
   const [copiedNodes, setCopiedNodes] = useState<CopiedNode[]>([]);
+  const [previousMode, setPreviousMode] = useState<CanvasMode>("select");
+  const [isTemporaryHandMode, setIsTemporaryHandMode] = useState(false);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const modifierKey = e.ctrlKey || e.metaKey;
 
-      if (e.key === "a" && modifierKey) {
+      if (e.key === " " && !modifierKey) {
+        e.preventDefault();
+        if (!isTemporaryHandMode) {
+          setPreviousMode(editor.mode);
+          setIsTemporaryHandMode(true);
+          editor.setMode("hand");
+        }
+      } else if (e.key === "a" && modifierKey) {
         e.preventDefault();
         selectAllNodes(editor);
       } else if (e.key === "c" && modifierKey) {
@@ -47,21 +57,46 @@ export const useKeyboardShortcuts = ({ editor }: UseKeyboardShortcutsProps) => {
         moveSelectedNodes(editor, direction, moveAmount);
       } else if (e.key === "v" && !modifierKey) {
         e.preventDefault();
+        setIsTemporaryHandMode(false);
         editor.setMode("select");
       } else if (e.key === "h" && !modifierKey) {
         e.preventDefault();
+        setIsTemporaryHandMode(false);
         editor.setMode("hand");
       } else if (e.key === "r" && !modifierKey) {
         e.preventDefault();
+        setIsTemporaryHandMode(false);
         editor.setMode("rectangle");
+      } else if (e.key === "o" && !modifierKey) {
+        e.preventDefault();
+        setIsTemporaryHandMode(false);
+        editor.setMode("oval");
+      } else if (modifierKey && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        editor.zoomBy(0.2);
+      } else if (modifierKey && e.key === "-") {
+        e.preventDefault();
+        editor.zoomBy(-0.2);
       }
     },
-    [editor, copiedNodes]
+    [editor, copiedNodes, isTemporaryHandMode]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === " " && isTemporaryHandMode) {
+        e.preventDefault();
+        setIsTemporaryHandMode(false);
+        editor.setMode(previousMode);
+      }
+    },
+    [editor, previousMode, isTemporaryHandMode]
   );
 
   return {
     copiedNodes,
     setCopiedNodes,
     handleKeyDown,
+    handleKeyUp,
   };
 };

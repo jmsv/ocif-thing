@@ -1,8 +1,8 @@
 import { createContext } from "react";
 
-export type CanvasMode = "select" | "hand" | "rectangle";
+export type CanvasMode = "select" | "hand" | "rectangle" | "oval";
 
-export interface SelectionRectangle {
+export interface SelectionBounds {
   startX: number;
   startY: number;
   endX: number;
@@ -19,8 +19,8 @@ export interface CanvasContextType {
   setMode: (mode: CanvasMode) => void;
   selectedNodes: Set<string>;
   setSelectedNodes: (nodes: Set<string>) => void;
-  selectionRectangle: SelectionRectangle | null;
-  setSelectionRectangle: (rect: SelectionRectangle | null) => void;
+  selectionBounds: SelectionBounds | null;
+  setSelectionBounds: (bounds: SelectionBounds | null) => void;
   handleMouseUp: (
     nodes?: Array<{ id: string; position: number[]; size: number[] }>
   ) => void;
@@ -30,9 +30,9 @@ export interface CanvasContextType {
     nodePositions: Map<string, number[]>
   ) => void;
   isDraggingNodes: boolean;
-  drawingRectangle: SelectionRectangle | null;
-  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
-  createRectangleNode: (bounds: SelectionRectangle) => void;
+  drawingBounds: SelectionBounds | null;
+  setDrawingBounds: (bounds: SelectionBounds | null) => void;
+  createShapeNode: (bounds: SelectionBounds) => void;
 }
 
 export const CanvasContext = createContext<CanvasContextType | null>(null);

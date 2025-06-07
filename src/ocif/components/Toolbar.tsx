@@ -1,4 +1,4 @@
-import { Hand, MousePointer2, Square } from "lucide-react";
+import { Circle, Hand, MousePointer2, Square } from "lucide-react";
 
 import { Toggle } from "@/components/ui/toggle";
 
@@ -41,6 +41,16 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
         aria-label="Rectangle mode"
       >
         <Square className="size-4" />
+      </Toggle>
+
+      <Toggle
+        pressed={mode === "oval"}
+        onPressedChange={(pressed) => {
+          if (pressed) setMode("oval");
+        }}
+        aria-label="Oval mode"
+      >
+        <Circle className="size-4" />
       </Toggle>
     </div>
   );

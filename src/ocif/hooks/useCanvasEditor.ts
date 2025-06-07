@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { nanoid } from "nanoid";
 
-import type { CanvasMode } from "../actions/types";
-import type { SelectionRectangle } from "../contexts/CanvasContext";
+import type { CanvasMode, SelectionBounds } from "../contexts/CanvasContext";
 import type { OcifDocument } from "../schema";
 import {
   calculateScaledDelta,
@@ -21,8 +20,8 @@ interface CanvasState {
   isDraggingNodes: boolean;
   nodeDragStart: { x: number; y: number };
   initialNodePositions: Map<string, number[]>;
-  isDrawingRectangle: boolean;
-  rectangleStart: { x: number; y: number };
+  isDrawingShape: boolean;
+  shapeStart: { x: number; y: number };
 }
 
 export interface CanvasEditor {
@@ -39,10 +38,10 @@ export interface CanvasEditor {
   setSelectedNodes: (nodes: Set<string>) => void;
 
   // UI state
-  selectionRectangle: SelectionRectangle | null;
-  setSelectionRectangle: (rect: SelectionRectangle | null) => void;
-  drawingRectangle: SelectionRectangle | null;
-  setDrawingRectangle: (rect: SelectionRectangle | null) => void;
+  selectionBounds: SelectionBounds | null;
+  setSelectionBounds: (bounds: SelectionBounds | null) => void;
+  drawingBounds: SelectionBounds | null;
+  setDrawingBounds: (bounds: SelectionBounds | null) => void;
 
   // Actions
   setScale: (newScale: number) => void;
@@ -56,7 +55,7 @@ export interface CanvasEditor {
     position: number[],
     size: number[]
   ) => void;
-  createRectangleNode: (bounds: SelectionRectangle) => void;
+  createShapeNode: (bounds: SelectionBounds) => void;
 
   // Internal event handlers (used by DocumentCanvas)
   handleMouseDown: (e: React.MouseEvent) => void;
@@ -91,16 +90,18 @@ export const useCanvasEditor = ({
     isDraggingNodes: false,
     nodeDragStart: { x: 0, y: 0 },
     initialNodePositions: new Map(),
-    isDrawingRectangle: false,
-    rectangleStart: { x: 0, y: 0 },
+    isDrawingShape: false,
+    shapeStart: { x: 0, y: 0 },
   });
 
   const [mode, setMode] = useState<CanvasMode>("select");
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
-  const [selectionRectangle, setSelectionRectangle] =
-    useState<SelectionRectangle | null>(null);
-  const [drawingRectangle, setDrawingRectangle] =
-    useState<SelectionRectangle | null>(null);
+  const [selectionBounds, setSelectionBounds] =
+    useState<SelectionBounds | null>(null);
+  const [drawingBounds, setDrawingBounds] = useState<SelectionBounds | null>(
+    null
+  );
+  const [drawingNodeId, setDrawingNodeId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const pendingUpdatesRef = useRef<Map<string, number[]>>(new Map());
@@ -151,8 +152,8 @@ export const useCanvasEditor = ({
     [updateDocument]
   );
 
-  const createRectangleNode = useCallback(
-    (bounds: SelectionRectangle) => {
+  const createShapeNode = useCallback(
+    (bounds: SelectionBounds) => {
       const minX = Math.min(bounds.startX, bounds.endX);
       const minY = Math.min(bounds.startY, bounds.endY);
       const width = Math.abs(bounds.endX - bounds.startX);
@@ -164,7 +165,7 @@ export const useCanvasEditor = ({
         size: [width, height],
         data: [
           {
-            type: "@ocif/node/rect",
+            type: mode === "oval" ? "@ocif/node/oval" : "@ocif/node/rect",
             strokeWidth: 2,
             strokeColor: "#000",
             fillColor: "#fff",
@@ -177,7 +178,7 @@ export const useCanvasEditor = ({
         nodes: [...(doc.nodes || []), newNode],
       }));
     },
-    [updateDocument]
+    [updateDocument, mode]
   );
 
   const setScale = useCallback((newScale: number) => {
@@ -257,13 +258,13 @@ export const useCanvasEditor = ({
           selectionStart: { x: canvasX, y: canvasY },
         }));
 
-        setSelectionRectangle({
+        setSelectionBounds({
           startX: canvasX,
           startY: canvasY,
           endX: canvasX,
           endY: canvasY,
         });
-      } else if (mode === "rectangle") {
+      } else if (mode === "rectangle" || mode === "oval") {
         const { x: canvasX, y: canvasY } = screenToCanvas(
           clientX,
           clientY,
@@ -273,19 +274,34 @@ export const useCanvasEditor = ({
 
         setState((prev) => ({
           ...prev,
-          isDrawingRectangle: true,
-          rectangleStart: { x: canvasX, y: canvasY },
+          isDrawingShape: true,
+          shapeStart: { x: canvasX, y: canvasY },
         }));
 
-        setDrawingRectangle({
-          startX: canvasX,
-          startY: canvasY,
-          endX: canvasX,
-          endY: canvasY,
-        });
+        setSelectedNodes(new Set());
+        const newNodeId = nanoid();
+        setDrawingNodeId(newNodeId);
+        const newNode = {
+          id: newNodeId,
+          position: [canvasX, canvasY],
+          size: [0, 0],
+          data: [
+            {
+              type: mode === "oval" ? "@ocif/node/oval" : "@ocif/node/rect",
+              strokeWidth: 2,
+              strokeColor: "#000",
+              fillColor: "#fff",
+            },
+          ],
+        };
+
+        updateDocument((doc) => ({
+          ...doc,
+          nodes: [...(doc.nodes || []), newNode],
+        }));
       }
     },
-    [mode, state.position, state.scale, state.isDraggingNodes]
+    [mode, state.position, state.scale, state.isDraggingNodes, updateDocument]
   );
 
   const handleMouseMove = useCallback(
@@ -314,7 +330,7 @@ export const useCanvasEditor = ({
             state.scale
           );
 
-          setSelectionRectangle({
+          setSelectionBounds({
             startX: prev.selectionStart.x,
             startY: prev.selectionStart.y,
             endX: canvasX,
@@ -340,7 +356,7 @@ export const useCanvasEditor = ({
           });
         }
 
-        if (prev.isDrawingRectangle && mode === "rectangle") {
+        if (prev.isDrawingShape && drawingNodeId) {
           const { x: canvasX, y: canvasY } = screenToCanvas(
             clientX,
             clientY,
@@ -348,43 +364,50 @@ export const useCanvasEditor = ({
             state.scale
           );
 
-          setDrawingRectangle({
-            startX: prev.rectangleStart.x,
-            startY: prev.rectangleStart.y,
-            endX: canvasX,
-            endY: canvasY,
-          });
+          const minX = Math.min(prev.shapeStart.x, canvasX);
+          const minY = Math.min(prev.shapeStart.y, canvasY);
+          const width = Math.abs(canvasX - prev.shapeStart.x);
+          const height = Math.abs(canvasY - prev.shapeStart.y);
+
+          updateNodeGeometry(drawingNodeId, [minX, minY], [width, height]);
         }
 
         return prev;
       });
     },
-    [mode, state.position, state.scale, updateNodeGeometry]
+    [mode, state.position, state.scale, updateNodeGeometry, drawingNodeId]
   );
 
   const handleMouseUp = useCallback(
     (nodes?: Array<{ id: string; position: number[]; size: number[] }>) => {
-      // Handle rectangle creation BEFORE setState to prevent multiple calls
-      if (state.isDrawingRectangle && drawingRectangle) {
-        const width = Math.abs(drawingRectangle.endX - drawingRectangle.startX);
-        const height = Math.abs(
-          drawingRectangle.endY - drawingRectangle.startY
-        );
-
-        if (width > 20 && height > 20) {
-          createRectangleNode(drawingRectangle);
+      if (state.isDrawingShape && drawingNodeId) {
+        const node = document.nodes?.find((n) => n.id === drawingNodeId);
+        if (
+          node &&
+          Array.isArray(node.size) &&
+          node.size.length >= 2 &&
+          Array.isArray(node.position) &&
+          node.position.length >= 2
+        ) {
+          const width = node.size[0];
+          const height = node.size[1];
+          if (width < 20 || height < 20) {
+            const x = node.position[0];
+            const y = node.position[1];
+            updateNodeGeometry(drawingNodeId, [x, y], [100, 100]);
+          }
         }
-
-        setDrawingRectangle(null);
+        setDrawingNodeId(null);
+        setMode("select");
       }
 
       setState((prev) => {
-        if (prev.isSelecting && selectionRectangle && nodes) {
-          const rect = selectionRectangle;
-          const minX = Math.min(rect.startX, rect.endX);
-          const maxX = Math.max(rect.startX, rect.endX);
-          const minY = Math.min(rect.startY, rect.endY);
-          const maxY = Math.max(rect.startY, rect.endY);
+        if (prev.isSelecting && selectionBounds && nodes) {
+          const bounds = selectionBounds;
+          const minX = Math.min(bounds.startX, bounds.endX);
+          const maxX = Math.max(bounds.startX, bounds.endX);
+          const minY = Math.min(bounds.startY, bounds.endY);
+          const maxY = Math.max(bounds.startY, bounds.endY);
 
           const selectedNodeIds = new Set<string>();
 
@@ -414,21 +437,22 @@ export const useCanvasEditor = ({
           isDragging: false,
           isSelecting: false,
           isDraggingNodes: false,
-          isDrawingRectangle: false,
+          isDrawingShape: false,
           initialNodePositions: new Map(),
         };
       });
 
       if (mode === "select") {
-        setSelectionRectangle(null);
+        setSelectionBounds(null);
       }
     },
     [
       mode,
-      selectionRectangle,
-      drawingRectangle,
-      createRectangleNode,
-      state.isDrawingRectangle,
+      selectionBounds,
+      state.isDrawingShape,
+      drawingNodeId,
+      document.nodes,
+      updateNodeGeometry,
     ]
   );
 
@@ -496,10 +520,10 @@ export const useCanvasEditor = ({
     setSelectedNodes,
 
     // UI state
-    selectionRectangle,
-    setSelectionRectangle,
-    drawingRectangle,
-    setDrawingRectangle,
+    selectionBounds,
+    setSelectionBounds,
+    drawingBounds,
+    setDrawingBounds,
 
     // Actions
     setScale,
@@ -509,7 +533,7 @@ export const useCanvasEditor = ({
     document,
     updateDocument,
     updateNodeGeometry,
-    createRectangleNode,
+    createShapeNode,
 
     // Internal event handlers
     handleMouseDown,
