@@ -15,6 +15,9 @@ const run = async () => {
       rectNode: await dl(
         "https://raw.githubusercontent.com/ocwg/spec/refs/heads/main/spec/v0.5/core/rect-node.json"
       ),
+      ovalNode: await dl(
+        "https://raw.githubusercontent.com/ocwg/spec/refs/heads/main/spec/v0.5/core/oval-node.json"
+      ),
     },
   };
 
@@ -29,13 +32,16 @@ const schemas = {
   base: ${JSON.stringify(JSON.parse(schemas.base))} as const,
   core: {
     rectNode: ${JSON.stringify(JSON.parse(schemas.core.rectNode))} as const,
+    ovalNode: ${JSON.stringify(JSON.parse(schemas.core.ovalNode))} as const,
   } as const,
 } as const;
 
 // Types
 
-export type OcifDocument = FromSchema<typeof schemas.base>;
-export type OcifCoreRect = FromSchema<typeof schemas.core.rectNode>;
+export type OcifSchemaBase = FromSchema<typeof schemas.base>;
+
+export type OcifSchemaCoreRect = FromSchema<typeof schemas.core.rectNode>;
+export type OcifSchemaCoreOval = FromSchema<typeof schemas.core.ovalNode>;
 
 // Validators
 

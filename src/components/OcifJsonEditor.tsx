@@ -1,23 +1,21 @@
 import { Editor } from "@monaco-editor/react";
 
-import { type OcifDocument, validateOcifBase } from "../schema";
+import { type OcifSchemaBase, validateOcifBase } from "../ocif";
 
-interface DocumentJsonEditorProps {
-  value: OcifDocument;
-  onChange: (value: OcifDocument) => void;
-}
-
-export function DocumentJsonEditor({
+export const OcifJsonEditor = ({
   value,
   onChange,
-}: DocumentJsonEditorProps) {
+}: {
+  value: OcifSchemaBase;
+  onChange: (value: OcifSchemaBase) => void;
+}) => {
   const handleChange = (newValue: string | undefined) => {
     if (!newValue) return;
 
     try {
       const parsed = JSON.parse(newValue) as unknown;
       if (validateOcifBase(parsed)) {
-        onChange(parsed as OcifDocument);
+        onChange(parsed as OcifSchemaBase);
       } else {
         console.error("Invalid OCIF document:", validateOcifBase.errors);
       }
@@ -47,4 +45,4 @@ export function DocumentJsonEditor({
       />
     </div>
   );
-}
+};

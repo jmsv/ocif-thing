@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
-import type { OcifDocument } from "../schema";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import type { OcifSchemaBase } from "../schema";
 import { baseNodeStyles } from "../utils/node";
 import { NodeExtension } from "./NodeExtension";
 import { NodeResource } from "./NodeResource";
 
 interface NodeContainerProps {
-  node: Exclude<OcifDocument["nodes"], undefined>[number];
-  document: OcifDocument;
-  editor: CanvasEditor;
+  node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
+  document: OcifSchemaBase;
+  editor: UseOcifEditor;
 }
 
 export const NodeContainer = ({
@@ -37,14 +37,12 @@ export const NodeContainer = ({
 
     e.stopPropagation();
 
-    // If this node is not selected and we're not holding Ctrl/Cmd, select it first
     if (!isSelected && !(e.ctrlKey || e.metaKey)) {
       const newSelection = new Set<string>();
       newSelection.add(node.id);
       setSelectedNodes(newSelection);
     }
 
-    // Get initial positions of all nodes that will be dragged
     const nodesToDrag = isSelected ? selectedNodes : new Set([node.id]);
     const nodePositions = new Map<string, number[]>();
 
@@ -54,7 +52,6 @@ export const NodeContainer = ({
       }
     });
 
-    // Start dragging
     startNodeDrag(node.id, e, nodePositions);
   };
 

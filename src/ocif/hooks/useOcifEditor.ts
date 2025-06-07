@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { nanoid } from "nanoid";
 
-import type { CanvasMode, SelectionBounds } from "../contexts/CanvasContext";
-import type { OcifDocument } from "../schema";
+import type { EditorMode, SelectionBounds } from "../contexts/EditorContext";
+import type { OcifSchemaBase } from "../schema";
 import {
   calculateScaledDelta,
   getRelativeMousePosition,
   screenToCanvas,
 } from "../utils/coordinates";
 
-interface CanvasState {
+interface OcifEditorState {
   position: { x: number; y: number };
   scale: number;
   isDragging: boolean;
@@ -24,7 +24,7 @@ interface CanvasState {
   shapeStart: { x: number; y: number };
 }
 
-export interface CanvasEditor {
+export interface UseOcifEditor {
   // Canvas state
   canvasRef: React.RefObject<HTMLDivElement | null>;
   position: { x: number; y: number };
@@ -32,8 +32,8 @@ export interface CanvasEditor {
   transform: string;
 
   // Mode and selection
-  mode: CanvasMode;
-  setMode: (mode: CanvasMode) => void;
+  mode: EditorMode;
+  setMode: (mode: EditorMode) => void;
   selectedNodes: Set<string>;
   setSelectedNodes: (nodes: Set<string>) => void;
 
@@ -48,8 +48,8 @@ export interface CanvasEditor {
   zoomBy: (delta: number, anchor?: { x: number; y: number }) => void;
 
   // Document manipulation
-  document: OcifDocument;
-  updateDocument: (updater: (doc: OcifDocument) => OcifDocument) => void;
+  document: OcifSchemaBase;
+  updateDocument: (updater: (doc: OcifSchemaBase) => OcifSchemaBase) => void;
   updateNodeGeometry: (
     nodeId: string,
     position: number[],
@@ -57,12 +57,10 @@ export interface CanvasEditor {
   ) => void;
   createShapeNode: (bounds: SelectionBounds) => void;
 
-  // Internal event handlers (used by DocumentCanvas)
+  // Internal event handlers
   handleMouseDown: (e: React.MouseEvent) => void;
   handleMouseMove: (e: React.MouseEvent) => void;
-  handleMouseUp: (
-    nodes?: Array<{ id: string; position: number[]; size: number[] }>
-  ) => void;
+  handleMouseUp: (e: React.MouseEvent) => void;
   startNodeDrag: (
     nodeId: string,
     e: React.MouseEvent,
@@ -71,16 +69,16 @@ export interface CanvasEditor {
   isDraggingNodes: boolean;
 }
 
-interface UseCanvasEditorOptions {
-  document: OcifDocument;
-  onChange: (document: OcifDocument) => void;
+interface UseOcifEditorOptions {
+  document: OcifSchemaBase;
+  onChange: (document: OcifSchemaBase) => void;
 }
 
-export const useCanvasEditor = ({
+export const useOcifEditor = ({
   document,
   onChange,
-}: UseCanvasEditorOptions): CanvasEditor => {
-  const [state, setState] = useState<CanvasState>({
+}: UseOcifEditorOptions): UseOcifEditor => {
+  const [state, setState] = useState<OcifEditorState>({
     position: { x: 0, y: 0 },
     scale: 1,
     isDragging: false,
@@ -94,7 +92,7 @@ export const useCanvasEditor = ({
     shapeStart: { x: 0, y: 0 },
   });
 
-  const [mode, setMode] = useState<CanvasMode>("select");
+  const [mode, setMode] = useState<EditorMode>("select");
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
   const [selectionBounds, setSelectionBounds] =
     useState<SelectionBounds | null>(null);
@@ -108,7 +106,7 @@ export const useCanvasEditor = ({
   const rafIdRef = useRef<number | null>(null);
 
   const updateDocument = useCallback(
-    (updater: (doc: OcifDocument) => OcifDocument) => {
+    (updater: (doc: OcifSchemaBase) => OcifSchemaBase) => {
       onChange(updater(document));
     },
     [document, onChange]
@@ -378,83 +376,87 @@ export const useCanvasEditor = ({
     [mode, state.position, state.scale, updateNodeGeometry, drawingNodeId]
   );
 
-  const handleMouseUp = useCallback(
-    (nodes?: Array<{ id: string; position: number[]; size: number[] }>) => {
-      if (state.isDrawingShape && drawingNodeId) {
-        const node = document.nodes?.find((n) => n.id === drawingNodeId);
-        if (
-          node &&
-          Array.isArray(node.size) &&
-          node.size.length >= 2 &&
-          Array.isArray(node.position) &&
-          node.position.length >= 2
-        ) {
-          const width = node.size[0];
-          const height = node.size[1];
-          if (width < 20 || height < 20) {
-            const x = node.position[0];
-            const y = node.position[1];
-            updateNodeGeometry(drawingNodeId, [x, y], [100, 100]);
+  const handleMouseUp = useCallback(() => {
+    if (state.isDrawingShape && drawingNodeId) {
+      const node = document.nodes?.find((n) => n.id === drawingNodeId);
+      if (
+        node &&
+        Array.isArray(node.size) &&
+        node.size.length >= 2 &&
+        Array.isArray(node.position) &&
+        node.position.length >= 2
+      ) {
+        const width = node.size[0];
+        const height = node.size[1];
+        if (width < 20 || height < 20) {
+          const x = node.position[0];
+          const y = node.position[1];
+          updateNodeGeometry(drawingNodeId, [x, y], [100, 100]);
+        }
+      }
+      setDrawingNodeId(null);
+      setMode("select");
+    }
+
+    setState((prev) => {
+      if (prev.isSelecting && selectionBounds && document.nodes) {
+        const bounds = selectionBounds;
+        const minX = Math.min(bounds.startX, bounds.endX);
+        const maxX = Math.max(bounds.startX, bounds.endX);
+        const minY = Math.min(bounds.startY, bounds.endY);
+        const maxY = Math.max(bounds.startY, bounds.endY);
+
+        const selectedNodeIds = new Set<string>();
+
+        for (const node of document.nodes || []) {
+          if (
+            !node.position ||
+            node.position.length < 2 ||
+            !node.size ||
+            node.size.length < 2
+          ) {
+            continue;
+          }
+
+          const nodeLeft = node.position[0];
+          const nodeTop = node.position[1];
+          const nodeRight = nodeLeft + node.size[0];
+          const nodeBottom = nodeTop + node.size[1];
+
+          if (
+            nodeLeft < maxX &&
+            nodeRight > minX &&
+            nodeTop < maxY &&
+            nodeBottom > minY
+          ) {
+            selectedNodeIds.add(node.id);
           }
         }
-        setDrawingNodeId(null);
-        setMode("select");
+
+        setSelectedNodes(selectedNodeIds);
       }
 
-      setState((prev) => {
-        if (prev.isSelecting && selectionBounds && nodes) {
-          const bounds = selectionBounds;
-          const minX = Math.min(bounds.startX, bounds.endX);
-          const maxX = Math.max(bounds.startX, bounds.endX);
-          const minY = Math.min(bounds.startY, bounds.endY);
-          const maxY = Math.max(bounds.startY, bounds.endY);
+      return {
+        ...prev,
+        isDragging: false,
+        isSelecting: false,
+        isDraggingNodes: false,
+        isDrawingShape: false,
+        initialNodePositions: new Map(),
+      };
+    });
 
-          const selectedNodeIds = new Set<string>();
-
-          nodes.forEach((node) => {
-            if (node.position.length >= 2 && node.size.length >= 2) {
-              const nodeLeft = node.position[0];
-              const nodeTop = node.position[1];
-              const nodeRight = nodeLeft + node.size[0];
-              const nodeBottom = nodeTop + node.size[1];
-
-              if (
-                nodeLeft < maxX &&
-                nodeRight > minX &&
-                nodeTop < maxY &&
-                nodeBottom > minY
-              ) {
-                selectedNodeIds.add(node.id);
-              }
-            }
-          });
-
-          setSelectedNodes(selectedNodeIds);
-        }
-
-        return {
-          ...prev,
-          isDragging: false,
-          isSelecting: false,
-          isDraggingNodes: false,
-          isDrawingShape: false,
-          initialNodePositions: new Map(),
-        };
-      });
-
-      if (mode === "select") {
-        setSelectionBounds(null);
-      }
-    },
-    [
-      mode,
-      selectionBounds,
-      state.isDrawingShape,
-      drawingNodeId,
-      document.nodes,
-      updateNodeGeometry,
-    ]
-  );
+    if (mode === "select") {
+      setSelectionBounds(null);
+    }
+  }, [
+    mode,
+    selectionBounds,
+    state.isDrawingShape,
+    drawingNodeId,
+    document.nodes,
+    updateNodeGeometry,
+  ]);
 
   const startNodeDrag = useCallback(
     (

@@ -23,11 +23,10 @@ This is an OCIF (Open Canvas Interchange Format) document viewer and editor buil
 ### Key Components
 
 - `src/ocif/schema.ts` - Generated TypeScript types and validators from OCIF JSON schema
-- `src/ocif/contexts/CanvasContext.tsx` - Canvas state management (position, scale, mode)
-- `src/ocif/components/DocumentCanvas.tsx` - Main canvas rendering component
-- `src/ocif/components/CanvasProvider.tsx` - Context provider for canvas state
+- `src/ocif/contexts/EditorContext.tsx` - Editor state management (position, scale, mode)
+- `src/ocif/components/OcifEditor.tsx` - Main canvas rendering component
 - `src/ocif/components/NodeContainer.tsx` - Individual node rendering
-- `src/ocif/components/DocumentJsonEditor.tsx` - Monaco-based JSON editor
+- `src/components/DocumentJsonEditor.tsx` - Monaco-based JSON editor
 
 ### OCIF Document Structure
 

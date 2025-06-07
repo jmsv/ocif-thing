@@ -1,15 +1,13 @@
 import { useState } from "react";
 
-import { DocumentCanvas } from "./ocif/components/DocumentCanvas";
-import { DocumentJsonEditor } from "./ocif/components/DocumentJsonEditor";
+import { OcifJsonEditor } from "./components/OcifJsonEditor";
+import { OcifEditor, type OcifSchemaBase, useOcifEditor } from "./ocif";
 import { exampleHelloWorld } from "./ocif/examples/hello-world";
-import { useCanvasEditor } from "./ocif/hooks/useCanvasEditor";
-import type { OcifDocument } from "./ocif/schema";
 
 function App() {
-  const [value, setValue] = useState<OcifDocument>(exampleHelloWorld);
+  const [value, setValue] = useState<OcifSchemaBase>(exampleHelloWorld);
 
-  const editor = useCanvasEditor({
+  const editor = useOcifEditor({
     document: value,
     onChange: setValue,
   });
@@ -21,11 +19,11 @@ function App() {
           <h1 className="text-xl font-bold">ocif thing</h1>
         </div>
 
-        <DocumentJsonEditor value={value} onChange={setValue} />
+        <OcifJsonEditor value={value} onChange={setValue} />
       </div>
 
       <div className="relative">
-        <DocumentCanvas editor={editor} />
+        <OcifEditor editor={editor} />
       </div>
     </div>
   );

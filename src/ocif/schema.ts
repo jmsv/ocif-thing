@@ -173,13 +173,31 @@ const schemas = {
       },
       required: ["type"],
     } as const,
+    ovalNode: {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      title: "@ocif/node/oval",
+      description: "Oval node extension",
+      type: "object",
+      properties: {
+        type: { type: "string", const: "@ocif/node/oval" },
+        strokeWidth: { type: "number", description: "The line width." },
+        strokeColor: {
+          type: "string",
+          description: "The color of the stroke.",
+        },
+        fillColor: { type: "string", description: "The color of the fill." },
+      },
+      required: ["type"],
+    } as const,
   } as const,
 } as const;
 
 // Types
 
-export type OcifDocument = FromSchema<typeof schemas.base>;
-export type OcifCoreRect = FromSchema<typeof schemas.core.rectNode>;
+export type OcifSchemaBase = FromSchema<typeof schemas.base>;
+
+export type OcifSchemaCoreRect = FromSchema<typeof schemas.core.rectNode>;
+export type OcifSchemaCoreOval = FromSchema<typeof schemas.core.ovalNode>;
 
 // Validators
 

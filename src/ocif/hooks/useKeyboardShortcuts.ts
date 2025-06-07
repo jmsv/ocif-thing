@@ -7,16 +7,16 @@ import { moveSelectedNodes } from "../actions/moveSelectedNodes";
 import { pasteNodes } from "../actions/pasteNodes";
 import { selectAllNodes } from "../actions/selectAllNodes";
 import type { CopiedNode } from "../actions/types";
-import type { CanvasMode } from "../contexts/CanvasContext";
-import type { CanvasEditor } from "./useCanvasEditor";
+import type { EditorMode } from "../contexts/EditorContext";
+import type { UseOcifEditor } from "./useOcifEditor";
 
 interface UseKeyboardShortcutsProps {
-  editor: CanvasEditor;
+  editor: UseOcifEditor;
 }
 
 export const useKeyboardShortcuts = ({ editor }: UseKeyboardShortcutsProps) => {
   const [copiedNodes, setCopiedNodes] = useState<CopiedNode[]>([]);
-  const [previousMode, setPreviousMode] = useState<CanvasMode>("select");
+  const [previousMode, setPreviousMode] = useState<EditorMode>("select");
   const [isTemporaryHandMode, setIsTemporaryHandMode] = useState(false);
 
   const handleKeyDown = useCallback(

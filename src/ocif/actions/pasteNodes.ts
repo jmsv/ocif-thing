@@ -1,18 +1,18 @@
 import { nanoid } from "nanoid";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
-import type { OcifDocument } from "../schema";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import type { OcifSchemaBase } from "../schema";
 import type { CopiedNode } from "./types";
 
 export const pasteNodes = (
-  editor: CanvasEditor,
+  editor: UseOcifEditor,
   copiedNodes: CopiedNode[]
 ): void => {
   if (copiedNodes.length === 0) return;
 
   const newSelectedNodes = new Set<string>();
-  const newNodes: Exclude<OcifDocument["nodes"], undefined> = [];
-  const newResources: Exclude<OcifDocument["resources"], undefined> = [];
+  const newNodes: Exclude<OcifSchemaBase["nodes"], undefined> = [];
+  const newResources: Exclude<OcifSchemaBase["resources"], undefined> = [];
 
   copiedNodes.forEach(({ node, resource }) => {
     const newNode = {

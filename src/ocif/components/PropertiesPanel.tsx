@@ -3,30 +3,15 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
-import type { OcifDocument } from "../schema";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
-interface PropertiesPanelProps {
-  document: OcifDocument;
-  editor: CanvasEditor;
-  onUpdateNodeGeometry: (
-    nodeId: string,
-    position: number[],
-    size: number[]
-  ) => void;
-}
-
-export const PropertiesPanel = ({
-  document,
-  editor,
-  onUpdateNodeGeometry,
-}: PropertiesPanelProps) => {
-  const { selectedNodes } = editor;
-
+export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
   const selectedNodeId =
-    selectedNodes.size === 1 ? Array.from(selectedNodes)[0] : null;
+    editor.selectedNodes.size === 1
+      ? Array.from(editor.selectedNodes)[0]
+      : null;
   const selectedNode = selectedNodeId
-    ? document.nodes?.find((node) => node.id === selectedNodeId)
+    ? editor.document.nodes?.find((node) => node.id === selectedNodeId)
     : null;
 
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -54,7 +39,7 @@ export const PropertiesPanel = ({
         ? { ...position, x: numValue }
         : { ...position, y: numValue };
     setPosition(newPosition);
-    onUpdateNodeGeometry(
+    editor.updateNodeGeometry(
       selectedNode.id,
       [newPosition.x, newPosition.y],
       [size.width, size.height]
@@ -68,7 +53,7 @@ export const PropertiesPanel = ({
         ? { ...size, width: numValue }
         : { ...size, height: numValue };
     setSize(newSize);
-    onUpdateNodeGeometry(
+    editor.updateNodeGeometry(
       selectedNode.id,
       [position.x, position.y],
       [newSize.width, newSize.height]
@@ -83,9 +68,7 @@ export const PropertiesPanel = ({
       onMouseMove={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
-      <div className="text-sm font-medium text-foreground">
-        Node {selectedNodeId}
-      </div>
+      <div className="text-sm font-medium text-foreground">Node Properties</div>
 
       <div className="space-y-3">
         <div>
@@ -120,7 +103,7 @@ export const PropertiesPanel = ({
                 value={size.width}
                 onChange={(e) => handleSizeChange("width", e.target.value)}
                 step="1"
-                min="20"
+                min="1"
               />
             </div>
             <div>
@@ -130,7 +113,7 @@ export const PropertiesPanel = ({
                 value={size.height}
                 onChange={(e) => handleSizeChange("height", e.target.value)}
                 step="1"
-                min="20"
+                min="1"
               />
             </div>
           </div>

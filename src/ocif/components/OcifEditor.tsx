@@ -1,28 +1,15 @@
 import { cn } from "@/lib/utils";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 import { NodeContainer } from "./NodeContainer";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { SelectionBounds } from "./SelectionBounds";
 import { Toolbar } from "./Toolbar";
 import { ZoomControls } from "./ZoomControls";
 
-interface DocumentCanvasProps {
-  editor: CanvasEditor;
-}
-
-export const DocumentCanvas = ({ editor }: DocumentCanvasProps) => {
+export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
   const { handleKeyDown, handleKeyUp } = useKeyboardShortcuts({ editor });
-
-  const handleMouseUpWithNodes = () => {
-    const nodes = editor.document.nodes?.map((node) => ({
-      id: node.id,
-      position: node.position || [0, 0],
-      size: node.size || [0, 0],
-    }));
-    editor.handleMouseUp(nodes);
-  };
 
   return (
     <div className="relative h-full w-full">
@@ -36,8 +23,8 @@ export const DocumentCanvas = ({ editor }: DocumentCanvasProps) => {
         })}
         onMouseDown={editor.handleMouseDown}
         onMouseMove={editor.handleMouseMove}
-        onMouseUp={handleMouseUpWithNodes}
-        onMouseLeave={handleMouseUpWithNodes}
+        onMouseUp={editor.handleMouseUp}
+        onMouseLeave={editor.handleMouseUp}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         tabIndex={0}
@@ -45,6 +32,15 @@ export const DocumentCanvas = ({ editor }: DocumentCanvasProps) => {
         <div className="absolute inset-0">
           <div className="absolute" style={{ transform: editor.transform }}>
             <div className="relative">
+              {editor.document.nodes?.map((node) => (
+                <NodeContainer
+                  key={node.id}
+                  node={node}
+                  document={editor.document}
+                  editor={editor}
+                />
+              ))}
+
               {editor.selectionBounds && (
                 <div
                   className="pointer-events-none absolute border-2 border-blue-500 bg-blue-500/10"
@@ -68,28 +64,12 @@ export const DocumentCanvas = ({ editor }: DocumentCanvasProps) => {
                   }}
                 />
               )}
-              {editor.document.nodes?.map((node) => (
-                <NodeContainer
-                  key={node.id}
-                  node={node}
-                  document={editor.document}
-                  editor={editor}
-                />
-              ))}
             </div>
           </div>
 
-          <SelectionBounds
-            document={editor.document}
-            editor={editor}
-            onUpdateNodeGeometry={editor.updateNodeGeometry}
-          />
+          <SelectionBounds editor={editor} />
 
-          <PropertiesPanel
-            document={editor.document}
-            editor={editor}
-            onUpdateNodeGeometry={editor.updateNodeGeometry}
-          />
+          <PropertiesPanel editor={editor} />
         </div>
       </div>
 

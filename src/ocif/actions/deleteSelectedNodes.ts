@@ -1,6 +1,6 @@
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
-export const deleteSelectedNodes = (editor: CanvasEditor): void => {
+export const deleteSelectedNodes = (editor: UseOcifEditor): void => {
   if (editor.selectedNodes.size === 0) return;
 
   const resourcesToDelete = new Set(

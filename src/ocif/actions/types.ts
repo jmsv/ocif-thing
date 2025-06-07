@@ -1,6 +1,6 @@
-import type { OcifDocument } from "../schema";
+import type { OcifSchemaBase } from "../schema";
 
 export interface CopiedNode {
-  node: Exclude<OcifDocument["nodes"], undefined>[number];
-  resource?: Exclude<OcifDocument["resources"], undefined>[number];
+  node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
+  resource?: Exclude<OcifSchemaBase["resources"], undefined>[number];
 }

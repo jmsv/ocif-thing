@@ -2,63 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
-import type { OcifDocument } from "../schema";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
-interface SelectionBoundsProps {
-  document: OcifDocument;
-  editor: CanvasEditor;
-  onUpdateNodeGeometry: (
-    nodeId: string,
-    position: number[],
-    size: number[]
-  ) => void;
-}
-
-interface Bounds {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
-
-const ResizeHandle = ({
-  position,
-  cursor,
-  onMouseDown,
-}: {
-  position: string;
-  cursor: string;
-  onMouseDown: (e: React.MouseEvent) => void;
-}) => {
-  const handlePositions = {
-    "top-left": "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
-    "top-center": "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
-    "top-right": "top-0 right-0 translate-x-1/2 -translate-y-1/2",
-    "middle-left": "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
-    "middle-right": "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
-    "bottom-left": "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
-    "bottom-center": "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2",
-    "bottom-right": "bottom-0 right-0 translate-x-1/2 translate-y-1/2",
-  };
-
-  return (
-    <div
-      className={cn(
-        "pointer-events-auto absolute h-3 w-3 rounded-sm border-2 border-white bg-blue-500 hover:bg-blue-600",
-        handlePositions[position as keyof typeof handlePositions]
-      )}
-      style={{ cursor }}
-      onMouseDown={onMouseDown}
-    />
-  );
-};
-
-export const SelectionBounds = ({
-  document,
-  editor,
-  onUpdateNodeGeometry,
-}: SelectionBoundsProps) => {
+export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
   const { selectedNodes, position, scale } = editor;
   const [isResizing, setIsResizing] = useState(false);
   const [resizeState, setResizeState] = useState<{
@@ -74,7 +20,7 @@ export const SelectionBounds = ({
 
   const selectedNodesList = useMemo(
     () =>
-      document.nodes?.filter(
+      editor.document.nodes?.filter(
         (node) =>
           selectedNodes.has(node.id) &&
           node.position &&
@@ -82,7 +28,7 @@ export const SelectionBounds = ({
           node.position.length >= 2 &&
           node.size.length >= 2
       ) || [],
-    [document.nodes, selectedNodes]
+    [editor.document.nodes, selectedNodes]
   );
 
   const handleMouseMove = useCallback(
@@ -163,14 +109,14 @@ export const SelectionBounds = ({
         const newNodeHeight = Math.round(relativeHeight * newHeight);
 
         // Update the document
-        onUpdateNodeGeometry(
+        editor.updateNodeGeometry(
           initialGeometry.id,
           [newLeft, newTop],
           [newNodeWidth, newNodeHeight]
         );
       });
     },
-    [isResizing, resizeState, scale, onUpdateNodeGeometry]
+    [isResizing, resizeState, scale, editor]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -295,5 +241,44 @@ export const SelectionBounds = ({
         onMouseDown={handleMouseDown("middle-right")}
       />
     </div>
+  );
+};
+
+interface Bounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+const ResizeHandle = ({
+  position,
+  cursor,
+  onMouseDown,
+}: {
+  position: string;
+  cursor: string;
+  onMouseDown: (e: React.MouseEvent) => void;
+}) => {
+  const handlePositions = {
+    "top-left": "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
+    "top-center": "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
+    "top-right": "top-0 right-0 translate-x-1/2 -translate-y-1/2",
+    "middle-left": "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
+    "middle-right": "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
+    "bottom-left": "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
+    "bottom-center": "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2",
+    "bottom-right": "bottom-0 right-0 translate-x-1/2 translate-y-1/2",
+  };
+
+  return (
+    <div
+      className={cn(
+        "pointer-events-auto absolute h-3 w-3 rounded-sm border-2 border-white bg-blue-500 hover:bg-blue-600",
+        handlePositions[position as keyof typeof handlePositions]
+      )}
+      style={{ cursor }}
+      onMouseDown={onMouseDown}
+    />
   );
 };

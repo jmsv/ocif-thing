@@ -1,7 +1,7 @@
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 import type { CopiedNode } from "./types";
 
-export const copySelectedNodes = (editor: CanvasEditor): CopiedNode[] => {
+export const copySelectedNodes = (editor: UseOcifEditor): CopiedNode[] => {
   const nodesToCopy =
     editor.document.nodes?.filter((node) =>
       editor.selectedNodes.has(node.id)

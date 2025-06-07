@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export type CanvasMode = "select" | "hand" | "rectangle" | "oval";
+export type EditorMode = "select" | "hand" | "rectangle" | "oval";
 
 export interface SelectionBounds {
   startX: number;
@@ -9,14 +9,14 @@ export interface SelectionBounds {
   endY: number;
 }
 
-export interface CanvasContextType {
+export interface EditorContextType {
   position: { x: number; y: number };
   scale: number;
   setScale: (scale: number) => void;
   zoomBy: (delta: number, anchor?: { x: number; y: number }) => void;
   transform: string;
-  mode: CanvasMode;
-  setMode: (mode: CanvasMode) => void;
+  mode: EditorMode;
+  setMode: (mode: EditorMode) => void;
   selectedNodes: Set<string>;
   setSelectedNodes: (nodes: Set<string>) => void;
   selectionBounds: SelectionBounds | null;
@@ -35,4 +35,4 @@ export interface CanvasContextType {
   createShapeNode: (bounds: SelectionBounds) => void;
 }
 
-export const CanvasContext = createContext<CanvasContextType | null>(null);
+export const EditorContext = createContext<EditorContextType | null>(null);

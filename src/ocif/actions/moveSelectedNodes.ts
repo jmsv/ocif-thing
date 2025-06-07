@@ -1,7 +1,7 @@
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
 export const moveSelectedNodes = (
-  editor: CanvasEditor,
+  editor: UseOcifEditor,
   direction: "up" | "down" | "left" | "right",
   amount: number = 1
 ): void => {

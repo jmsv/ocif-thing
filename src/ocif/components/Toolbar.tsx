@@ -2,10 +2,10 @@ import { Circle, Hand, MousePointer2, Square } from "lucide-react";
 
 import { Toggle } from "@/components/ui/toggle";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
 interface ToolbarProps {
-  editor: CanvasEditor;
+  editor: UseOcifEditor;
 }
 
 export const Toolbar = ({ editor }: ToolbarProps) => {

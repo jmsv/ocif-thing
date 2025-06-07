@@ -1,7 +1,7 @@
 // https://github.com/ocwg/spec/blob/main/spec/v0.5/spec.md#hello-world-example
-import type { OcifDocument } from "../schema";
+import type { OcifSchemaBase } from "../schema";
 
-export const exampleHelloWorld: OcifDocument = {
+export const exampleHelloWorld: OcifSchemaBase = {
   ocif: "https://canvasprotocol.org/ocif/v0.5",
   nodes: [
     {

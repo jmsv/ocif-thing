@@ -2,21 +2,15 @@ import { Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import type { CanvasEditor } from "../hooks/useCanvasEditor";
+import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
-interface ZoomControlsProps {
-  editor: CanvasEditor;
-}
-
-export const ZoomControls = ({ editor }: ZoomControlsProps) => {
-  const { scale, setScale, zoomBy } = editor;
-
+export const ZoomControls = ({ editor }: { editor: UseOcifEditor }) => {
   return (
     <div className="absolute right-4 bottom-4 flex items-center rounded-lg border bg-background p-1 select-none">
       <Button
         size="icon"
         variant="ghost"
-        onClick={() => zoomBy(-0.2)}
+        onClick={() => editor.zoomBy(-0.2)}
         aria-label="Zoom out"
       >
         <Minus className="size-4" />
@@ -25,17 +19,17 @@ export const ZoomControls = ({ editor }: ZoomControlsProps) => {
       <Button
         size="md"
         variant="ghost"
-        onClick={() => setScale(1)}
+        onClick={() => editor.setScale(1)}
         aria-label="Reset zoom to 100%"
         className="w-14 px-0"
       >
-        {Math.round(scale * 100)}%
+        {Math.round(editor.scale * 100)}%
       </Button>
 
       <Button
         size="icon"
         variant="ghost"
-        onClick={() => zoomBy(0.2)}
+        onClick={() => editor.zoomBy(0.2)}
         aria-label="Zoom in"
       >
         <Plus className="size-4" />
