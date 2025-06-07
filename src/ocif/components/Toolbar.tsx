@@ -1,4 +1,11 @@
-import { Circle, Hand, MousePointer2, Pencil, Square } from "lucide-react";
+import {
+  Circle,
+  Hand,
+  type LucideIcon,
+  MousePointer2,
+  Pencil,
+  Square,
+} from "lucide-react";
 
 import { Toggle } from "@/components/ui/toggle";
 
@@ -13,55 +20,75 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
 
   return (
     <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-background p-1">
-      <Toggle
+      <ToggleButton
         pressed={mode === "select"}
-        onPressedChange={(pressed) => {
-          if (pressed) setMode("select");
-        }}
-        aria-label="Select mode"
-      >
-        <MousePointer2 className="size-4" />
-      </Toggle>
+        onSetMode={() => setMode("select")}
+        ariaLabel="Select mode"
+        shortcutKey="v"
+        icon={MousePointer2}
+      />
 
-      <Toggle
+      <ToggleButton
         pressed={mode === "hand"}
-        onPressedChange={(pressed) => {
-          if (pressed) setMode("hand");
-        }}
-        aria-label="Hand mode"
-      >
-        <Hand className="size-4" />
-      </Toggle>
+        onSetMode={() => setMode("hand")}
+        ariaLabel="Hand mode"
+        shortcutKey="h"
+        icon={Hand}
+      />
 
-      <Toggle
+      <ToggleButton
         pressed={mode === "rectangle"}
-        onPressedChange={(pressed) => {
-          if (pressed) setMode("rectangle");
-        }}
-        aria-label="Rectangle mode"
-      >
-        <Square className="size-4" />
-      </Toggle>
+        onSetMode={() => setMode("rectangle")}
+        ariaLabel="Rectangle mode"
+        shortcutKey="r"
+        icon={Square}
+      />
 
-      <Toggle
+      <ToggleButton
         pressed={mode === "oval"}
-        onPressedChange={(pressed) => {
-          if (pressed) setMode("oval");
-        }}
-        aria-label="Oval mode"
-      >
-        <Circle className="size-4" />
-      </Toggle>
+        onSetMode={() => setMode("oval")}
+        ariaLabel="Oval mode"
+        shortcutKey="o"
+        icon={Circle}
+      />
 
-      <Toggle
+      <ToggleButton
         pressed={mode === "draw"}
-        onPressedChange={(pressed) => {
-          if (pressed) setMode("draw");
-        }}
-        aria-label="Draw mode"
-      >
-        <Pencil className="size-4" />
-      </Toggle>
+        onSetMode={() => setMode("draw")}
+        ariaLabel="Draw mode"
+        shortcutKey="d"
+        icon={Pencil}
+      />
     </div>
+  );
+};
+
+const ToggleButton = ({
+  pressed,
+  onSetMode,
+  ariaLabel,
+  shortcutKey,
+  icon: Icon,
+}: {
+  pressed: boolean;
+  onSetMode: () => void;
+  ariaLabel: string;
+  shortcutKey: string;
+  icon: LucideIcon;
+}) => {
+  return (
+    <Toggle
+      pressed={pressed}
+      onPressedChange={(pressed) => {
+        if (pressed) onSetMode();
+      }}
+      aria-label={ariaLabel}
+      className="relative"
+    >
+      <div className="absolute right-1 bottom-0.5 text-[8px] font-bold uppercase opacity-30">
+        {shortcutKey}
+      </div>
+      <Icon className="size-4" />
+    </Toggle>
   );
 };
