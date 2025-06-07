@@ -44,6 +44,7 @@ export const useKeyboardShortcuts = ({ editor }: UseKeyboardShortcutsProps) => {
         ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
       ) {
         e.preventDefault();
+        if (editor.mode !== "select") return;
 
         const moveAmount = e.shiftKey ? 10 : 1;
         const directionMap = {

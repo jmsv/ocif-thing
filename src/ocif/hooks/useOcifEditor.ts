@@ -508,6 +508,11 @@ export const useOcifEditor = ({
     };
   }, []);
 
+  const setModeAndClearSelection = useCallback((newMode: EditorMode) => {
+    setSelectedNodes(new Set());
+    setMode(newMode);
+  }, []);
+
   return {
     // Canvas state
     canvasRef,
@@ -517,7 +522,7 @@ export const useOcifEditor = ({
 
     // Mode and selection
     mode,
-    setMode,
+    setMode: setModeAndClearSelection,
     selectedNodes,
     setSelectedNodes,
 
