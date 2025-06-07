@@ -2,10 +2,10 @@ import { useState } from "react";
 
 import { OcifJsonEditor } from "./components/OcifJsonEditor";
 import { OcifEditor, type OcifSchemaBase, useOcifEditor } from "./ocif";
-import { exampleHelloWorld } from "./ocif/examples/hello-world";
+import { exampleDefault } from "./ocif/examples/default";
 
 function App() {
-  const [value, setValue] = useState<OcifSchemaBase>(exampleHelloWorld);
+  const [value, setValue] = useState<OcifSchemaBase>(exampleDefault);
 
   const editor = useOcifEditor({
     document: value,

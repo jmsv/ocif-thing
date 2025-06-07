@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export type EditorMode = "select" | "hand" | "rectangle" | "oval";
+export type EditorMode = "select" | "hand" | "rectangle" | "oval" | "draw";
 
 export interface SelectionBounds {
   startX: number;

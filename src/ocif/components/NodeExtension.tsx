@@ -1,16 +1,24 @@
+import { useRef } from "react";
+
 import type {
   OcifSchemaBase,
   OcifSchemaCoreOval,
+  OcifSchemaCorePath,
   OcifSchemaCoreRect,
 } from "../schema";
 import { baseNodeStyles } from "../utils/node";
+
+type NodeExtension =
+  | OcifSchemaCoreRect
+  | OcifSchemaCoreOval
+  | OcifSchemaCorePath;
 
 export const NodeExtension = ({
   node,
   extension,
 }: {
   node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
-  extension: { type: string };
+  extension: NodeExtension;
 }) => {
   if (!node.size || node.size.length < 2) {
     return null;
@@ -51,5 +59,47 @@ export const NodeExtension = ({
     );
   }
 
+  if (extension.type === "@ocif/node/path") {
+    const extensionPath = extension as OcifSchemaCorePath;
+
+    return <NodeCorePath node={node} extension={extensionPath} />;
+  }
+
   return null;
+};
+
+const NodeCorePath = ({
+  node,
+  extension,
+}: {
+  node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
+  extension: OcifSchemaCorePath;
+}) => {
+  const pathRef = useRef<SVGPathElement>(null);
+
+  if (!node.size || node.size.length < 2) {
+    return null;
+  }
+
+  return (
+    <svg
+      viewBox={`0 0 ${pathRef.current?.getBBox().width} ${pathRef.current?.getBBox().height}`}
+      style={{
+        ...baseNodeStyles,
+        width: node.size[0],
+        height: node.size[1],
+        overflow: "visible",
+      }}
+      className="object-scale-down"
+      preserveAspectRatio="none"
+    >
+      <path
+        ref={pathRef}
+        d={extension.path}
+        stroke={extension.strokeColor}
+        strokeWidth={extension.strokeWidth}
+        fill={extension.fillColor}
+      />
+    </svg>
+  );
 };

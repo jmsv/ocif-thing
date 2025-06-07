@@ -189,6 +189,25 @@ const schemas = {
       },
       required: ["type"],
     } as const,
+    pathNode: {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      title: "@ocif/node/path",
+      description: "Path node extension",
+      type: "object",
+      properties: {
+        strokeWidth: { type: "number", description: "The line width." },
+        strokeColor: {
+          type: "string",
+          description: "The color of the stroke.",
+        },
+        fillColor: { type: "string", description: "The color of the fill." },
+        path: {
+          type: "string",
+          description: "The path data in SVG 'd' attribute syntax.",
+        },
+      },
+      required: ["path"],
+    } as const,
   } as const,
 } as const;
 
@@ -198,6 +217,7 @@ export type OcifSchemaBase = FromSchema<typeof schemas.base>;
 
 export type OcifSchemaCoreRect = FromSchema<typeof schemas.core.rectNode>;
 export type OcifSchemaCoreOval = FromSchema<typeof schemas.core.ovalNode>;
+export type OcifSchemaCorePath = FromSchema<typeof schemas.core.pathNode>;
 
 // Validators
 

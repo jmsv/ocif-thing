@@ -72,6 +72,10 @@ export const useKeyboardShortcuts = ({ editor }: UseKeyboardShortcutsProps) => {
         e.preventDefault();
         setIsTemporaryHandMode(false);
         editor.setMode("oval");
+      } else if (e.key === "d" && !modifierKey) {
+        e.preventDefault();
+        setIsTemporaryHandMode(false);
+        editor.setMode("draw");
       } else if (modifierKey && (e.key === "+" || e.key === "=")) {
         e.preventDefault();
         editor.zoomBy(0.2);

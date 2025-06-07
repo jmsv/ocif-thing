@@ -9,6 +9,10 @@ import {
   getRelativeMousePosition,
   screenToCanvas,
 } from "../utils/coordinates";
+import {
+  getPerfectPointsFromPoints,
+  getSvgPathFromPoints,
+} from "../utils/drawing";
 
 interface OcifEditorState {
   position: { x: number; y: number };
@@ -22,6 +26,7 @@ interface OcifEditorState {
   initialNodePositions: Map<string, number[]>;
   isDrawingShape: boolean;
   shapeStart: { x: number; y: number };
+  drawingPoints: Array<[number, number]> | undefined;
 }
 
 export interface UseOcifEditor {
@@ -29,7 +34,9 @@ export interface UseOcifEditor {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   position: { x: number; y: number };
   scale: number;
+  isDraggingNodes: boolean;
   transform: string;
+  drawingPoints: Array<[number, number]> | undefined;
 
   // Mode and selection
   mode: EditorMode;
@@ -66,7 +73,6 @@ export interface UseOcifEditor {
     e: React.MouseEvent,
     nodePositions: Map<string, number[]>
   ) => void;
-  isDraggingNodes: boolean;
 }
 
 interface UseOcifEditorOptions {
@@ -90,6 +96,7 @@ export const useOcifEditor = ({
     initialNodePositions: new Map(),
     isDrawingShape: false,
     shapeStart: { x: 0, y: 0 },
+    drawingPoints: undefined,
   });
 
   const [mode, setMode] = useState<EditorMode>("select");
@@ -297,6 +304,19 @@ export const useOcifEditor = ({
           ...doc,
           nodes: [...(doc.nodes || []), newNode],
         }));
+      } else if (mode === "draw") {
+        const { x: canvasX, y: canvasY } = screenToCanvas(
+          clientX,
+          clientY,
+          state.position,
+          state.scale
+        );
+
+        setState((prev) => ({
+          ...prev,
+          isDrawing: true,
+          drawingPoints: [[canvasX, canvasY]],
+        }));
       }
     },
     [mode, state.position, state.scale, state.isDraggingNodes, updateDocument]
@@ -370,6 +390,20 @@ export const useOcifEditor = ({
           updateNodeGeometry(drawingNodeId, [minX, minY], [width, height]);
         }
 
+        if (prev.drawingPoints && mode === "draw") {
+          const { x: canvasX, y: canvasY } = screenToCanvas(
+            clientX,
+            clientY,
+            state.position,
+            state.scale
+          );
+
+          return {
+            ...prev,
+            drawingPoints: [...prev.drawingPoints, [canvasX, canvasY]],
+          };
+        }
+
         return prev;
       });
     },
@@ -396,6 +430,45 @@ export const useOcifEditor = ({
       }
       setDrawingNodeId(null);
       setMode("select");
+    }
+
+    if (state.drawingPoints) {
+      const points = state.drawingPoints;
+      if (points.length >= 2) {
+        const perfectPoints = getPerfectPointsFromPoints(points);
+
+        const xCoords = perfectPoints.map(([x]) => x);
+        const yCoords = perfectPoints.map(([, y]) => y);
+        const minX = Math.min(...xCoords);
+        const minY = Math.min(...yCoords);
+        const maxX = Math.max(...xCoords);
+        const maxY = Math.max(...yCoords);
+
+        const adjustedPoints = perfectPoints.map(([x, y]) => [
+          x - minX,
+          y - minY,
+        ]);
+
+        const path = getSvgPathFromPoints(adjustedPoints);
+
+        const newNode = {
+          id: nanoid(),
+          position: [minX, minY],
+          size: [maxX - minX, maxY - minY],
+          data: [
+            {
+              type: "@ocif/node/path",
+              path,
+              fillColor: "#000",
+            },
+          ],
+        };
+
+        updateDocument((doc) => ({
+          ...doc,
+          nodes: [...(doc.nodes || []), newNode],
+        }));
+      }
     }
 
     setState((prev) => {
@@ -442,6 +515,7 @@ export const useOcifEditor = ({
         isSelecting: false,
         isDraggingNodes: false,
         isDrawingShape: false,
+        drawingPoints: undefined,
         initialNodePositions: new Map(),
       };
     });
@@ -453,9 +527,11 @@ export const useOcifEditor = ({
     mode,
     selectionBounds,
     state.isDrawingShape,
+    state.drawingPoints,
     drawingNodeId,
     document.nodes,
     updateNodeGeometry,
+    updateDocument,
   ]);
 
   const startNodeDrag = useCallback(
@@ -518,7 +594,9 @@ export const useOcifEditor = ({
     canvasRef,
     position: state.position,
     scale: state.scale,
+    isDraggingNodes: state.isDraggingNodes,
     transform: `translate(${state.position.x}px, ${state.position.y}px) scale(${state.scale})`,
+    drawingPoints: state.drawingPoints,
 
     // Mode and selection
     mode,
@@ -547,6 +625,5 @@ export const useOcifEditor = ({
     handleMouseMove,
     handleMouseUp,
     startNodeDrag,
-    isDraggingNodes: state.isDraggingNodes,
   };
 };

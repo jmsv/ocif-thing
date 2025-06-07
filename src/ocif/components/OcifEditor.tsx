@@ -2,6 +2,10 @@ import { cn } from "@/lib/utils";
 
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import {
+  getPerfectPointsFromPoints,
+  getSvgPathFromPoints,
+} from "../utils/drawing";
 import { NodeContainer } from "./NodeContainer";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { SelectionBounds } from "./SelectionBounds";
@@ -19,7 +23,9 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
           "cursor-grab active:cursor-grabbing": editor.mode === "hand",
           "cursor-default": editor.mode === "select",
           "cursor-crosshair":
-            editor.mode === "rectangle" || editor.mode === "oval",
+            editor.mode === "rectangle" ||
+            editor.mode === "oval" ||
+            editor.mode === "draw",
         })}
         onMouseDown={editor.handleMouseDown}
         onMouseMove={editor.handleMouseMove}
@@ -40,6 +46,25 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
                   editor={editor}
                 />
               ))}
+
+              {editor.drawingPoints && (
+                <svg
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    overflow: "visible",
+                    userSelect: "none",
+                  }}
+                >
+                  <path
+                    d={getSvgPathFromPoints(
+                      getPerfectPointsFromPoints(editor.drawingPoints)
+                    )}
+                    fill="#000"
+                  />
+                </svg>
+              )}
 
               {editor.selectionBounds && (
                 <div
