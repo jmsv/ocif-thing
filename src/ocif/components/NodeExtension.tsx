@@ -8,17 +8,12 @@ import type {
 } from "../schema";
 import { baseNodeStyles } from "../utils/node";
 
-type NodeExtension =
-  | OcifSchemaCoreRect
-  | OcifSchemaCoreOval
-  | OcifSchemaCorePath;
-
 export const NodeExtension = ({
   node,
   extension,
 }: {
   node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
-  extension: NodeExtension;
+  extension: { type: string };
 }) => {
   if (!node.size || node.size.length < 2) {
     return null;
@@ -60,7 +55,8 @@ export const NodeExtension = ({
   }
 
   if (extension.type === "@ocif/node/path") {
-    const extensionPath = extension as OcifSchemaCorePath;
+    // TODO: This isn't working without `as unknown` because `OcifSchemaCorePath` doesn't have a `type` property
+    const extensionPath = extension as unknown as OcifSchemaCorePath;
 
     return <NodeCorePath node={node} extension={extensionPath} />;
   }
