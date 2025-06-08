@@ -139,7 +139,6 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
   if (selectedNodes.size === 0) return null;
   if (selectedNodesList.length === 0) return null;
 
-  // Calculate bounding box of all selected nodes
   const bounds = selectedNodesList.reduce<Bounds | null>((acc, node) => {
     const left = node.position![0];
     const top = node.position![1];

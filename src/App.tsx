@@ -1,3 +1,5 @@
+import "./ocif/index.css";
+
 import { useState } from "react";
 
 import { OcifJsonEditor } from "./components/OcifJsonEditor";
@@ -22,9 +24,7 @@ function App() {
         <OcifJsonEditor value={value} onChange={setValue} />
       </div>
 
-      <div className="relative">
-        <OcifEditor editor={editor} />
-      </div>
+      <OcifEditor editor={editor} />
     </div>
   );
 }

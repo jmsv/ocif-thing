@@ -1,0 +1,44 @@
+.ocif-editor {
+  --ocif-editor-background-color: 0 0 98%;
+  --ocif-editor-primary-color: 217 91 60%;
+
+  /* relative h-full w-full overflow-hidden bg-gray-50 */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: hsl(var(--ocif-editor-background-color));
+
+  &.ocif-cursor-grab {
+    cursor: grab;
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  &.ocif-cursor-default {
+    cursor: default;
+  }
+  &.ocif-cursor-crosshair {
+    cursor: crosshair;
+  }
+
+  & .ocif-editor-content {
+    /* absolute inset-0 */
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  & .ocif-editor-ui {
+    z-index: 0;
+
+    & .ocif-selection-preview {
+      /* absolute border-2 border-blue-500 bg-blue-500/10 */
+      position: absolute;
+      border-width: 2px;
+      border-style: solid;
+      border-color: hsl(var(--ocif-editor-primary-color));
+      background-color: hsl(var(--ocif-editor-primary-color) / 0.1);
+    }
+  }
+}
