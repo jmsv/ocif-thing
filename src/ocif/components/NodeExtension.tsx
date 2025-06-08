@@ -1,4 +1,6 @@
-import { useRef } from "react";
+import { useMemo } from "react";
+
+import svgPathBounds from "svg-path-bounds";
 
 import type {
   OcifSchemaBase,
@@ -71,26 +73,23 @@ const NodeCorePath = ({
   node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
   extension: OcifSchemaCorePath;
 }) => {
-  const pathRef = useRef<SVGPathElement>(null);
+  const bounds = useMemo(() => svgPathBounds(extension.path), [extension.path]);
+  const [, , right, bottom] = bounds;
 
-  if (!node.size || node.size.length < 2) {
-    return null;
-  }
+  const width = node.size?.[0] ?? right;
+  const height = node.size?.[1] ?? bottom;
 
   return (
     <svg
-      viewBox={`0 0 ${pathRef.current?.getBBox().width} ${pathRef.current?.getBBox().height}`}
+      viewBox={`0 0 ${right} ${bottom}`}
       style={{
         ...baseNodeStyles,
-        width: node.size[0],
-        height: node.size[1],
-        overflow: "visible",
+        width,
+        height,
       }}
-      className="object-scale-down"
       preserveAspectRatio="none"
     >
       <path
-        ref={pathRef}
         d={extension.path}
         stroke={extension.strokeColor}
         strokeWidth={extension.strokeWidth}
