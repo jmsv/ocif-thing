@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "shadcn": "bunx --bun shadcn@latest add",
     "format": "prettier --write \"./**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
