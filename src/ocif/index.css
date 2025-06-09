@@ -40,5 +40,45 @@
       border-color: hsl(var(--ocif-editor-primary-color));
       background-color: hsl(var(--ocif-editor-primary-color) / 0.1);
     }
+
+    & .ocif-toolbar {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      display: flex;
+      transform: translateX(-50%);
+      align-items: center;
+      gap: 4px;
+      border-radius: 8px;
+      background-color: #fff;
+      padding: 4px;
+      border: 1px solid #eee;
+
+      & .ocif-toolbar-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: 8px;
+        font-weight: 500;
+        outline: none;
+        width: 36px;
+        height: 36px;
+
+        &:hover {
+          background-color: #eee;
+        }
+
+        &.ocif-toolbar-button-pressed {
+          background-color: #eee;
+        }
+
+        & .ocif-toolbar-button-icon {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
   }
 }

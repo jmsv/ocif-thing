@@ -1,3 +1,5 @@
+import * as Toggle from "@radix-ui/react-toggle";
+import clsx from "clsx";
 import {
   Circle,
   Hand,
@@ -6,8 +8,6 @@ import {
   Pencil,
   Square,
 } from "lucide-react";
-
-import { Toggle } from "@/components/ui/toggle";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
 
@@ -19,8 +19,8 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
   const { mode, setMode } = editor;
 
   return (
-    <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-background p-1">
-      <ToggleButton
+    <div className="ocif-toolbar">
+      <ToolbarButton
         pressed={mode === "select"}
         onSetMode={() => setMode("select")}
         ariaLabel="Select mode"
@@ -28,7 +28,7 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
         icon={MousePointer2}
       />
 
-      <ToggleButton
+      <ToolbarButton
         pressed={mode === "hand"}
         onSetMode={() => setMode("hand")}
         ariaLabel="Hand mode"
@@ -36,7 +36,7 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
         icon={Hand}
       />
 
-      <ToggleButton
+      <ToolbarButton
         pressed={mode === "rectangle"}
         onSetMode={() => setMode("rectangle")}
         ariaLabel="Rectangle mode"
@@ -44,7 +44,7 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
         icon={Square}
       />
 
-      <ToggleButton
+      <ToolbarButton
         pressed={mode === "oval"}
         onSetMode={() => setMode("oval")}
         ariaLabel="Oval mode"
@@ -52,7 +52,7 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
         icon={Circle}
       />
 
-      <ToggleButton
+      <ToolbarButton
         pressed={mode === "draw"}
         onSetMode={() => setMode("draw")}
         ariaLabel="Draw mode"
@@ -63,7 +63,7 @@ export const Toolbar = ({ editor }: ToolbarProps) => {
   );
 };
 
-const ToggleButton = ({
+const ToolbarButton = ({
   pressed,
   onSetMode,
   ariaLabel,
@@ -77,18 +77,20 @@ const ToggleButton = ({
   icon: LucideIcon;
 }) => {
   return (
-    <Toggle
+    <Toggle.Root
       pressed={pressed}
       onPressedChange={(pressed) => {
         if (pressed) onSetMode();
       }}
       aria-label={ariaLabel}
-      className="relative"
+      className={clsx("ocif-toolbar-button", {
+        "ocif-toolbar-button-pressed": pressed,
+      })}
     >
       <div className="absolute right-1 bottom-0.5 text-[8px] font-bold uppercase opacity-30">
         {shortcutKey}
       </div>
-      <Icon className="size-4" />
-    </Toggle>
+      <Icon className="ocif-toolbar-button-icon" />
+    </Toggle.Root>
   );
 };
