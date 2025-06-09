@@ -36,7 +36,7 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
       tabIndex={0}
     >
       <div
-        className="ocif-editor-content"
+        className="ocif-editor-canvas"
         style={{ transform: editor.transform }}
       >
         {editor.document.nodes?.map((node) => (
@@ -58,11 +58,12 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
             />
           </svg>
         )}
+
+        <SelectionPreview editor={editor} />
       </div>
 
       <div className="ocif-editor-ui">
         <SelectionBounds editor={editor} />
-        <SelectionPreview editor={editor} />
         <PropertiesPanel editor={editor} />
         <ZoomControls editor={editor} />
         <Toolbar editor={editor} />
