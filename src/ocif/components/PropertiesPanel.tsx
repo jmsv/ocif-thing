@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import { Input } from "./ui/Input";
 
 export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
   const selectedNodeId =
@@ -61,20 +59,17 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
   };
 
   return (
-    <div
-      className="absolute top-4 right-4 flex w-64 flex-col gap-3 rounded-lg border bg-background p-3 select-none"
-      onMouseDown={(e) => e.stopPropagation()}
-      onMouseUp={(e) => e.stopPropagation()}
-      onMouseMove={(e) => e.stopPropagation()}
-      onKeyDown={(e) => e.stopPropagation()}
-    >
-      <div className="text-sm font-medium text-foreground">Node Properties</div>
+    <div className="ocif-properties-panel">
+      <div className="ocif-properties-panel-header">Node Properties</div>
 
-      <div className="space-y-3">
+      <div className="ocif-properties-panel-content">
         <div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="ocif-properties-panel-content-grid">
             <div>
-              <Label className="text-xs text-muted-foreground">X</Label>
+              <label htmlFor="x" className="ocif-input-label">
+                X
+              </label>
+
               <Input
                 type="number"
                 value={position.x}
@@ -82,8 +77,10 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
                 step="1"
               />
             </div>
+
             <div>
-              <Label className="text-xs text-muted-foreground">Y</Label>
+              <label className="ocif-input-label">Y</label>
+
               <Input
                 type="number"
                 value={position.y}
@@ -95,9 +92,10 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
         </div>
 
         <div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="ocif-properties-panel-content-grid">
             <div>
-              <Label className="text-xs text-muted-foreground">W</Label>
+              <label className="ocif-input-label">W</label>
+
               <Input
                 type="number"
                 value={size.width}
@@ -106,8 +104,10 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
                 min="1"
               />
             </div>
+
             <div>
-              <Label className="text-xs text-muted-foreground">H</Label>
+              <label className="ocif-input-label">H</label>
+
               <Input
                 type="number"
                 value={size.height}

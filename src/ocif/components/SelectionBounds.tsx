@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { cn } from "@/lib/utils";
-
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import { canvasToScreenPosition } from "../utils/coordinates";
+
+type HandlePosition =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "middle-left"
+  | "middle-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
 
 export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
-  const { selectedNodes, position, scale } = editor;
   const [isResizing, setIsResizing] = useState(false);
   const [resizeState, setResizeState] = useState<{
-    handlePosition: string;
+    handlePosition: HandlePosition;
     startBounds: Bounds;
     startMousePos: { x: number; y: number };
     initialNodeGeometries: Array<{
@@ -22,21 +30,21 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
     () =>
       editor.document.nodes?.filter(
         (node) =>
-          selectedNodes.has(node.id) &&
+          editor.selectedNodes.has(node.id) &&
           node.position &&
           node.size &&
           node.position.length >= 2 &&
           node.size.length >= 2
       ) || [],
-    [editor.document.nodes, selectedNodes]
+    [editor.document.nodes, editor.selectedNodes]
   );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing || !resizeState) return;
 
-      const deltaX = (e.clientX - resizeState.startMousePos.x) / scale;
-      const deltaY = (e.clientY - resizeState.startMousePos.y) / scale;
+      const deltaX = (e.clientX - resizeState.startMousePos.x) / editor.scale;
+      const deltaY = (e.clientY - resizeState.startMousePos.y) / editor.scale;
 
       const newBounds = { ...resizeState.startBounds };
 
@@ -116,7 +124,7 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
         );
       });
     },
-    [isResizing, resizeState, scale, editor]
+    [isResizing, resizeState, editor]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -136,7 +144,7 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
-  if (selectedNodes.size === 0) return null;
+  if (editor.selectedNodes.size === 0) return null;
   if (selectedNodesList.length === 0) return null;
 
   const bounds = selectedNodesList.reduce<Bounds | null>((acc, node) => {
@@ -159,26 +167,26 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
 
   if (!bounds) return null;
 
-  const handleMouseDown = (handlePosition: string) => (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsResizing(true);
+  const handleMouseDown =
+    (handlePosition: HandlePosition) => (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsResizing(true);
 
-    const initialNodeGeometries = selectedNodesList.map((node) => ({
-      id: node.id,
-      position: [...node.position!],
-      size: [...node.size!],
-    }));
+      const initialNodeGeometries = selectedNodesList.map((node) => ({
+        id: node.id,
+        position: [...node.position!],
+        size: [...node.size!],
+      }));
 
-    setResizeState({
-      handlePosition,
-      startBounds: { ...bounds },
-      startMousePos: { x: e.clientX, y: e.clientY },
-      initialNodeGeometries,
-    });
-  };
+      setResizeState({
+        handlePosition,
+        startBounds: { ...bounds },
+        startMousePos: { x: e.clientX, y: e.clientY },
+        initialNodeGeometries,
+      });
+    };
 
-  // Calculate the visual bounds for rendering
   const visualBounds = {
     left: Math.min(bounds.left, bounds.right),
     top: Math.min(bounds.top, bounds.bottom),
@@ -186,57 +194,56 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
     height: Math.abs(bounds.bottom - bounds.top),
   };
 
+  const { x, y } = canvasToScreenPosition(
+    visualBounds.left,
+    visualBounds.top,
+    editor.position,
+    editor.scale
+  );
+
   return (
     <div
-      className="pointer-events-none absolute border-2 border-blue-500/50"
+      className="ocif-selection-bounds"
       style={{
-        left: visualBounds.left * scale + position.x,
-        top: visualBounds.top * scale + position.y,
-        width: visualBounds.width * scale,
-        height: visualBounds.height * scale,
+        left: x,
+        top: y,
+        width: visualBounds.width * editor.scale,
+        height: visualBounds.height * editor.scale,
       }}
     >
       {/* Corner handles */}
       <ResizeHandle
         position="top-left"
-        cursor="nw-resize"
         onMouseDown={handleMouseDown("top-left")}
       />
       <ResizeHandle
         position="top-right"
-        cursor="ne-resize"
         onMouseDown={handleMouseDown("top-right")}
       />
       <ResizeHandle
         position="bottom-left"
-        cursor="sw-resize"
         onMouseDown={handleMouseDown("bottom-left")}
       />
       <ResizeHandle
         position="bottom-right"
-        cursor="se-resize"
         onMouseDown={handleMouseDown("bottom-right")}
       />
 
       {/* Edge handles */}
       <ResizeHandle
         position="top-center"
-        cursor="n-resize"
         onMouseDown={handleMouseDown("top-center")}
       />
       <ResizeHandle
         position="bottom-center"
-        cursor="s-resize"
         onMouseDown={handleMouseDown("bottom-center")}
       />
       <ResizeHandle
         position="middle-left"
-        cursor="w-resize"
         onMouseDown={handleMouseDown("middle-left")}
       />
       <ResizeHandle
         position="middle-right"
-        cursor="e-resize"
         onMouseDown={handleMouseDown("middle-right")}
       />
     </div>
@@ -252,31 +259,15 @@ interface Bounds {
 
 const ResizeHandle = ({
   position,
-  cursor,
   onMouseDown,
 }: {
-  position: string;
-  cursor: string;
+  position: HandlePosition;
   onMouseDown: (e: React.MouseEvent) => void;
 }) => {
-  const handlePositions = {
-    "top-left": "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
-    "top-center": "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
-    "top-right": "top-0 right-0 translate-x-1/2 -translate-y-1/2",
-    "middle-left": "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
-    "middle-right": "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
-    "bottom-left": "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
-    "bottom-center": "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2",
-    "bottom-right": "bottom-0 right-0 translate-x-1/2 translate-y-1/2",
-  };
-
   return (
     <div
-      className={cn(
-        "pointer-events-auto absolute h-3 w-3 rounded-sm border-2 border-white bg-blue-500 hover:bg-blue-600",
-        handlePositions[position as keyof typeof handlePositions]
-      )}
-      style={{ cursor }}
+      className="ocif-selection-bounds-handle"
+      data-position={position}
       onMouseDown={onMouseDown}
     />
   );

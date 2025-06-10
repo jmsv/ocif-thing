@@ -1,46 +1,78 @@
-.ocif-editor {
-  --ocif-editor-background-color: 0 0 98%;
-  --ocif-editor-primary-color: 217 91 60%;
-  --ocif-editor-accent-color: 0 0 96%;
+.ocif-editor-root {
+  --ocif-editor-color-background: 0 0 98%;
+  --ocif-editor-color-primary: 217 91 60%;
+  --ocif-editor-color-accent: 0 0 96%;
+  --ocif-editor-color-border: 0 0 94%;
+  --ocif-editor-color-muted: 0 0 60%;
 
-  /* relative h-full w-full overflow-hidden bg-gray-50 */
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: hsl(var(--ocif-editor-background-color));
+  box-sizing: border-box;
 
-  &.ocif-cursor-grab {
-    cursor: grab;
-    &:active {
-      cursor: grabbing;
+  & * {
+    box-sizing: border-box;
+  }
+
+  & .ocif-editor {
+    /* relative h-full w-full overflow-hidden bg-gray-50 */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: hsl(var(--ocif-editor-color-background));
+
+    &.ocif-cursor-grab {
+      cursor: grab;
+      &:active {
+        cursor: grabbing;
+      }
+    }
+    &.ocif-cursor-default {
+      cursor: default;
+    }
+    &.ocif-cursor-crosshair {
+      cursor: crosshair;
+    }
+
+    & .ocif-editor-canvas {
+      /* absolute inset-0 */
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      transform-origin: top left;
     }
   }
-  &.ocif-cursor-default {
-    cursor: default;
-  }
-  &.ocif-cursor-crosshair {
-    cursor: crosshair;
-  }
 
-  & .ocif-editor-canvas {
-    /* absolute inset-0 */
-    position: absolute;
-    inset: 0;
+  & .ocif-editor-ui {
     z-index: 0;
+
+    & .ocif-input {
+      width: 100%;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid hsl(var(--ocif-editor-color-border));
+      padding: 0 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    & .ocif-input-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: hsl(var(--ocif-editor-color-muted));
+    }
 
     & .ocif-selection-preview {
       /* absolute border-2 border-blue-500 bg-blue-500/10 */
       position: absolute;
       border-width: 2px;
       border-style: solid;
-      border-color: hsl(var(--ocif-editor-primary-color));
-      background-color: hsl(var(--ocif-editor-primary-color) / 0.1);
+      border-color: hsl(var(--ocif-editor-color-primary));
+      background-color: hsl(var(--ocif-editor-color-primary) / 0.1);
+      pointer-events: none;
+      user-select: none;
     }
-  }
-
-  & .ocif-editor-ui {
-    z-index: 0;
 
     & .ocif-toolbar {
       position: absolute;
@@ -53,7 +85,7 @@
       border-radius: 12px;
       background-color: #fff;
       padding: 4px;
-      border: 1px solid #eee;
+      border: 1px solid hsl(var(--ocif-editor-color-border));
 
       & .ocif-toolbar-button {
         position: relative;
@@ -68,11 +100,11 @@
         height: 36px;
 
         &:hover {
-          background-color: hsl(var(--ocif-editor-accent-color));
+          background-color: hsl(var(--ocif-editor-color-accent));
         }
 
         &.ocif-toolbar-button-pressed {
-          background-color: hsl(var(--ocif-editor-accent-color));
+          background-color: hsl(var(--ocif-editor-color-accent));
         }
 
         & svg {
@@ -91,7 +123,7 @@
       align-items: center;
       border-radius: 12px;
       background-color: #fff;
-      border: 1px solid hsl(var(--ocif-editor-accent-color));
+      border: 1px solid hsl(var(--ocif-editor-color-border));
       padding: 4px;
 
       & .ocif-zoom-button {
@@ -105,7 +137,7 @@
         border-radius: 8px;
 
         &:hover {
-          background-color: hsl(var(--ocif-editor-accent-color));
+          background-color: hsl(var(--ocif-editor-color-accent));
         }
 
         &.ocif-zoom-button-center {
@@ -115,6 +147,109 @@
         & svg {
           width: 16px;
           height: 16px;
+        }
+      }
+    }
+
+    & .ocif-properties-panel {
+      /* absolute top-4 right-4 flex w-64 flex-col gap-3 rounded-lg border bg-background p-3 select-none */
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      width: 256px;
+      flex-direction: column;
+      gap: 8px;
+      border-radius: 12px;
+      background-color: #fff;
+      border: 1px solid hsl(var(--ocif-editor-color-border));
+      padding: 12px;
+
+      & .ocif-properties-panel-header {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      & .ocif-properties-panel-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      & .ocif-properties-panel-content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+    }
+
+    & .ocif-selection-bounds {
+      /* pointer-events-none absolute border-2 border-blue-500/50 */
+      position: absolute;
+      border-width: 2px;
+      border-style: solid;
+      border-color: hsl(var(--ocif-editor-color-primary) / 0.5);
+      pointer-events: none;
+      user-select: none;
+
+      & .ocif-selection-bounds-handle {
+        pointer-events: auto;
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        border-width: 2px;
+        border-style: solid;
+        border-color: hsl(var(--ocif-editor-color-background));
+        background-color: hsl(var(--ocif-editor-color-primary));
+
+        &[data-position="top-left"] {
+          top: 0;
+          left: 0;
+          transform: translate(-50%, -50%);
+          cursor: nw-resize;
+        }
+        &[data-position="top-center"] {
+          top: 0;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          cursor: n-resize;
+        }
+        &[data-position="top-right"] {
+          top: 0;
+          right: 0;
+          transform: translate(50%, -50%);
+          cursor: ne-resize;
+        }
+        &[data-position="middle-left"] {
+          top: 50%;
+          left: 0;
+          transform: translate(-50%, -50%);
+          cursor: w-resize;
+        }
+        &[data-position="middle-right"] {
+          top: 50%;
+          right: 0;
+          transform: translate(50%, -50%);
+          cursor: e-resize;
+        }
+        &[data-position="bottom-left"] {
+          bottom: 0;
+          left: 0;
+          transform: translate(-50%, 50%);
+          cursor: sw-resize;
+        }
+        &[data-position="bottom-center"] {
+          bottom: 0;
+          left: 50%;
+          transform: translate(-50%, 50%);
+          cursor: s-resize;
+        }
+        &[data-position="bottom-right"] {
+          bottom: 0;
+          right: 0;
+          transform: translate(50%, 50%);
+          cursor: se-resize;
         }
       }
     }

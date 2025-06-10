@@ -15,7 +15,7 @@ export function getRelativeMousePosition(
 /**
  * Convert screen coordinates to canvas coordinates
  */
-export function screenToCanvas(
+export function screenToCanvasPosition(
   screenX: number,
   screenY: number,
   canvasPosition: { x: number; y: number },
@@ -24,6 +24,21 @@ export function screenToCanvas(
   return {
     x: (screenX - canvasPosition.x) / scale,
     y: (screenY - canvasPosition.y) / scale,
+  };
+}
+
+/**
+ * Convert canvas coordinates to screen coordinates
+ */
+export function canvasToScreenPosition(
+  canvasX: number,
+  canvasY: number,
+  canvasPosition: { x: number; y: number },
+  scale: number
+): { x: number; y: number } {
+  return {
+    x: canvasX * scale + canvasPosition.x,
+    y: canvasY * scale + canvasPosition.y,
   };
 }
 

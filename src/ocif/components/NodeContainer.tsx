@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import clsx from "clsx";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
 import type { OcifSchemaBase } from "../schema";
@@ -57,7 +57,7 @@ export const NodeContainer = ({
 
   return (
     <div
-      className={cn({ "ring ring-blue-500": isSelected })}
+      className={clsx({ "ring ring-blue-500": isSelected })}
       style={{
         ...baseNodeStyles,
         width: node.size[0],

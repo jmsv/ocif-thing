@@ -7,20 +7,14 @@ export const ZoomControls = ({ editor }: { editor: UseOcifEditor }) => {
     <div className="ocif-zoom-controls">
       <button
         className="ocif-zoom-button"
-        onClick={(e) => {
-          e.stopPropagation();
-          editor.zoomBy(-0.2);
-        }}
+        onClick={() => editor.zoomBy(-0.2)}
         aria-label="Zoom out"
       >
         <MinusIcon />
       </button>
 
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          editor.setScale(1);
-        }}
+        onClick={() => editor.setScale(1)}
         className="ocif-zoom-button ocif-zoom-button-center"
         aria-label="Reset zoom to 100%"
       >
@@ -29,10 +23,7 @@ export const ZoomControls = ({ editor }: { editor: UseOcifEditor }) => {
 
       <button
         className="ocif-zoom-button"
-        onClick={(e) => {
-          e.stopPropagation();
-          editor.zoomBy(0.2);
-        }}
+        onClick={() => editor.zoomBy(0.2)}
         aria-label="Zoom in"
       >
         <PlusIcon />

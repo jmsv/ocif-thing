@@ -7,7 +7,7 @@ import type { OcifSchemaBase } from "../schema";
 import {
   calculateScaledDelta,
   getRelativeMousePosition,
-  screenToCanvas,
+  screenToCanvasPosition,
 } from "../utils/coordinates";
 import {
   getPerfectPointsFromPoints,
@@ -250,7 +250,7 @@ export const useOcifEditor = ({
           },
         }));
       } else if (mode === "select" && !state.isDraggingNodes) {
-        const { x: canvasX, y: canvasY } = screenToCanvas(
+        const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
           state.position,
@@ -270,7 +270,7 @@ export const useOcifEditor = ({
           endY: canvasY,
         });
       } else if (mode === "rectangle" || mode === "oval") {
-        const { x: canvasX, y: canvasY } = screenToCanvas(
+        const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
           state.position,
@@ -305,7 +305,7 @@ export const useOcifEditor = ({
           nodes: [...(doc.nodes || []), newNode],
         }));
       } else if (mode === "draw") {
-        const { x: canvasX, y: canvasY } = screenToCanvas(
+        const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
           state.position,
@@ -341,7 +341,7 @@ export const useOcifEditor = ({
         }
 
         if (prev.isSelecting && mode === "select") {
-          const { x: canvasX, y: canvasY } = screenToCanvas(
+          const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
             state.position,
@@ -375,7 +375,7 @@ export const useOcifEditor = ({
         }
 
         if (prev.isDrawingShape && drawingNodeId) {
-          const { x: canvasX, y: canvasY } = screenToCanvas(
+          const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
             state.position,
@@ -391,7 +391,7 @@ export const useOcifEditor = ({
         }
 
         if (prev.drawingPoints && mode === "draw") {
-          const { x: canvasX, y: canvasY } = screenToCanvas(
+          const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
             state.position,
