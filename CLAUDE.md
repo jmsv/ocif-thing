@@ -2,51 +2,40 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Development Commands
+## Project Overview
 
-- `bun dev` - Start development server
-- `bun run build` - Build the project (runs TypeScript compilation and Vite build)
-- `bun run lint` - Run ESLint
-- `bun run format` - Format code with Prettier
-- `bun run shadcn` - Add shadcn/ui components
+This is a monorepo for OCIF (Open Container Image Format) tools, implementing the OCIF Spec v0.5. The project uses Bun as the package manager and Turbo for monorepo orchestration.
 
-## Architecture Overview
+### Architecture
 
-This is an OCIF (Open Canvas Interchange Format) document viewer and editor built with React, TypeScript, and Vite. The app follows the OCIF spec v0.5 (https://github.com/ocwg/spec/blob/main/spec/v0.5/spec.md).
+The project is structured as a monorepo with:
 
-### Core Structure
+- **apps/playground**: React + Vite playground app demonstrating OCIF editing capabilities
+- **packages/ocif-thing-schema**: TypeScript types and schemas for OCIF documents
+- **packages/ocif-thing-validate**: AJV-based validation for OCIF documents
+- **packages/ocif-thing-editor**: React component library for editing OCIF documents
 
-- **Split-pane layout**: JSON editor (left) and visual canvas (right)
-- **Real-time sync**: Changes in JSON editor immediately reflect on canvas
-- **Canvas system**: Interactive 2D canvas with zoom, pan, and selection modes
+The packages have interdependencies: editor depends on schema, validate depends on schema, and playground uses all three packages.
 
-### Key Components
+## Common Commands
 
-- `src/ocif/schema.ts` - Generated TypeScript types and validators from OCIF JSON schema
-- `src/ocif/contexts/EditorContext.tsx` - Editor state management (position, scale, mode)
-- `src/ocif/components/OcifEditor.tsx` - Main canvas rendering component
-- `src/ocif/components/NodeContainer.tsx` - Individual node rendering
-- `src/components/DocumentJsonEditor.tsx` - Monaco-based JSON editor
+### Development
 
-### OCIF Document Structure
+- `bun i` - Install dependencies
+- `bun dev` - Start development servers for all apps
+- `bun build` - Build all packages and apps
+- `bun check-types` - Type check all packages
 
-OCIF documents contain:
+### Code Quality
 
-- **Nodes**: Visual elements with position, size, and optional resources
-- **Resources**: Content (text, images, etc.) that can be referenced by nodes
-- **Relations**: Connections between nodes
-- **Schemas**: Custom schema definitions for extensions
+- `bun lint` - Run ESLint across the codebase
+- `bun format` - Format code with Prettier
 
-### Canvas Features
+### Package-specific Development
 
-- Pan and zoom functionality
-- Multiple interaction modes (select/hand)
-- Node positioning and rendering
-- Resource display with various fit modes (contain, cover, fill, etc.)
+- Individual packages can be developed with `bun dev` in their directories
+- Packages use tsup for building with watch mode support
 
-### Development Notes
+## Reference
 
-- Uses Bun as package manager
-- Monaco Editor for JSON editing
-- Husky + lint-staged for pre-commit hooks
-- Schema generation via `build-schema.ts`
+OCIF Spec: https://github.com/ocwg/spec/blob/main/spec/v0.5/spec.md
