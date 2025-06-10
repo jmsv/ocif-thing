@@ -22,6 +22,7 @@
     "@vitejs/plugin-react": "^4.5.1",
     "globals": "^16.2.0",
     "ocif-thing-editor": "workspace:*",
+    "ocif-thing-examples": "workspace:*",
     "ocif-thing-schema": "workspace:*",
     "ocif-thing-validate": "workspace:*",
     "typescript": "~5.8.3",

@@ -2,7 +2,8 @@ import "ocif-thing-editor/styles.css";
 
 import { useState } from "react";
 
-import { OcifEditor, exampleDefault, useOcifEditor } from "ocif-thing-editor";
+import { OcifEditor, useOcifEditor } from "ocif-thing-editor";
+import { exampleDefault } from "ocif-thing-examples";
 import type { OcifSchemaBase } from "ocif-thing-schema";
 
 import { OcifJsonEditor } from "./OcifJsonEditor";
