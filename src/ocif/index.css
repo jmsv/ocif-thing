@@ -1,6 +1,7 @@
 .ocif-editor {
   --ocif-editor-background-color: 0 0 98%;
   --ocif-editor-primary-color: 217 91 60%;
+  --ocif-editor-accent-color: 0 0 96%;
 
   /* relative h-full w-full overflow-hidden bg-gray-50 */
   position: relative;
@@ -49,7 +50,7 @@
       transform: translateX(-50%);
       align-items: center;
       gap: 4px;
-      border-radius: 8px;
+      border-radius: 12px;
       background-color: #fff;
       padding: 4px;
       border: 1px solid #eee;
@@ -67,14 +68,51 @@
         height: 36px;
 
         &:hover {
-          background-color: #eee;
+          background-color: hsl(var(--ocif-editor-accent-color));
         }
 
         &.ocif-toolbar-button-pressed {
-          background-color: #eee;
+          background-color: hsl(var(--ocif-editor-accent-color));
         }
 
-        & .ocif-toolbar-button-icon {
+        & svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    & .ocif-zoom-controls {
+      /* absolute right-4 bottom-4 flex items-center rounded-lg border bg-background p-1 select-none */
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      align-items: center;
+      border-radius: 12px;
+      background-color: #fff;
+      border: 1px solid hsl(var(--ocif-editor-accent-color));
+      padding: 4px;
+
+      & .ocif-zoom-button {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+
+        &:hover {
+          background-color: hsl(var(--ocif-editor-accent-color));
+        }
+
+        &.ocif-zoom-button-center {
+          width: 56px;
+        }
+
+        & svg {
           width: 16px;
           height: 16px;
         }

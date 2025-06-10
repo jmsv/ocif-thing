@@ -90,7 +90,7 @@ const ToolbarButton = ({
       <div className="absolute right-1 bottom-0.5 text-[8px] font-bold uppercase opacity-30">
         {shortcutKey}
       </div>
-      <Icon className="ocif-toolbar-button-icon" />
+      <Icon />
     </Toggle.Root>
   );
 };
