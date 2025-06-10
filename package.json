@@ -1,51 +1,36 @@
 {
   "name": "ocif-thing",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "shadcn": "bunx --bun shadcn@latest add",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev": "turbo dev",
     "format": "prettier --write \"./**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "prepare": "husky"
-  },
-  "dependencies": {
-    "@monaco-editor/react": "^4.7.0",
-    "ajv": "^8.17.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "json-schema-to-ts": "^3.1.1",
-    "lucide-react": "^0.513.0",
-    "nanoid": "^5.1.5",
-    "perfect-freehand": "^1.2.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "svg-path-bounds": "^1.0.2"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/node": "^22.15.29",
-    "@types/react": "^19.1.6",
-    "@types/react-dom": "^19.1.6",
-    "@types/svg-path-bounds": "^1.0.2",
-    "@vitejs/plugin-react": "^4.5.1",
-    "eslint": "^9.28.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.2.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.0",
-    "prettier": "^3.5.3",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.33.1",
-    "vite": "^6.3.5"
+    "lint": "eslint .",
+    "prepare": "husky",
+    "preview": "turbo preview"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
-  }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.31",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.33.1"
+  },
+  "packageManager": "bun@1.2.15"
 }

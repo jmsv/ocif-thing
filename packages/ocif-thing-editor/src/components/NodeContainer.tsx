@@ -1,7 +1,7 @@
 import clsx from "clsx";
+import type { OcifSchemaBase } from "ocif-thing-schema";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
-import type { OcifSchemaBase } from "../schema";
 import { baseNodeStyles } from "../utils/node";
 import { NodeExtension } from "./NodeExtension";
 import { NodeResource } from "./NodeResource";

@@ -1,11 +1,11 @@
-import "./ocif/index.css";
+import "ocif-thing-editor/styles.css";
 
 import { useState } from "react";
 
-import icon from "../public/icon.svg";
-import { OcifJsonEditor } from "./components/OcifJsonEditor";
-import { OcifEditor, type OcifSchemaBase, useOcifEditor } from "./ocif";
-import { exampleDefault } from "./ocif/examples/default";
+import { OcifEditor, exampleDefault, useOcifEditor } from "ocif-thing-editor";
+import type { OcifSchemaBase } from "ocif-thing-schema";
+
+import { OcifJsonEditor } from "./OcifJsonEditor";
 
 function App() {
   const [value, setValue] = useState<OcifSchemaBase>(exampleDefault);
@@ -20,8 +20,8 @@ function App() {
       <aside className="app-aside">
         <div className="app-aside-header">
           <h1>
-            <img src={icon} alt="ocif icon" />
-            ocif thing
+            <img src="/icon.svg" alt="ocif icon" />
+            ocif thing playground
           </h1>
         </div>
 

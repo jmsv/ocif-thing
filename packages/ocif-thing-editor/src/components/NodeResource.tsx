@@ -1,4 +1,5 @@
-import type { OcifSchemaBase } from "../schema";
+import type { OcifSchemaBase } from "ocif-thing-schema";
+
 import { baseNodeStyles } from "../utils/node";
 
 export const NodeResource = ({

@@ -1,4 +1,4 @@
-import type { OcifSchemaBase } from "../schema";
+import type { OcifSchemaBase } from "ocif-thing-schema";
 
 export interface CopiedNode {
   node: Exclude<OcifSchemaBase["nodes"], undefined>[number];

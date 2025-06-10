@@ -1,7 +1,7 @@
-import { nanoid } from "nanoid";
+import type { OcifSchemaBase } from "ocif-thing-schema";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
-import type { OcifSchemaBase } from "../schema";
+import { generateId } from "../utils/generateId";
 import type { CopiedNode } from "./types";
 
 export const pasteNodes = (
@@ -17,7 +17,7 @@ export const pasteNodes = (
   copiedNodes.forEach(({ node, resource }) => {
     const newNode = {
       ...node,
-      id: nanoid(),
+      id: generateId(),
       position: [
         (node.position?.[0] || 0) + 20,
         (node.position?.[1] || 0) + 20,
@@ -27,7 +27,7 @@ export const pasteNodes = (
     if (resource) {
       const newResource = {
         ...resource,
-        id: nanoid(),
+        id: generateId(),
       };
       newResources.push(newResource);
       newNode.resource = newResource.id;

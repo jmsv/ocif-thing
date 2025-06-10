@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { nanoid } from "nanoid";
+import type { OcifSchemaBase } from "ocif-thing-schema";
 
 import type { EditorMode, SelectionBounds } from "../contexts/EditorContext";
-import type { OcifSchemaBase } from "../schema";
 import {
   calculateScaledDelta,
   getRelativeMousePosition,
@@ -13,6 +12,7 @@ import {
   getPerfectPointsFromPoints,
   getSvgPathFromPoints,
 } from "../utils/drawing";
+import { generateId } from "../utils/generateId";
 
 interface OcifEditorState {
   position: { x: number; y: number };
@@ -164,7 +164,7 @@ export const useOcifEditor = ({
       const height = Math.abs(bounds.endY - bounds.startY);
 
       const newNode = {
-        id: nanoid(),
+        id: generateId(),
         position: [minX, minY],
         size: [width, height],
         data: [
@@ -276,7 +276,7 @@ export const useOcifEditor = ({
         }));
 
         setSelectedNodes(new Set());
-        const newNodeId = nanoid();
+        const newNodeId = generateId();
         setDrawingNodeId(newNodeId);
         const newNode = {
           id: newNodeId,
@@ -444,7 +444,7 @@ export const useOcifEditor = ({
         const path = getSvgPathFromPoints(adjustedPoints);
 
         const newNode = {
-          id: nanoid(),
+          id: generateId(),
           position: [minX, minY],
           size: [maxX - minX, maxY - minY],
           data: [

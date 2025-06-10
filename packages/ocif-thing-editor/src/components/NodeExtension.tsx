@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 
-import svgPathBounds from "svg-path-bounds";
-
 import type {
   OcifSchemaBase,
   OcifSchemaCoreOval,
   OcifSchemaCorePath,
   OcifSchemaCoreRect,
-} from "../schema";
+} from "ocif-thing-schema";
+import svgPathBounds from "svg-path-bounds";
+
 import { baseNodeStyles } from "../utils/node";
 
 export const NodeExtension = ({

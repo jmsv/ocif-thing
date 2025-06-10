@@ -1,0 +1,25 @@
+{
+  "name": "ocif-thing-validate",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup ./src/index.ts",
+    "check-types": "tsc --noEmit",
+    "dev": "tsup ./src/index.ts --watch"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ocif-thing-schema": "workspace:*",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}

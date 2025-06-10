@@ -1,6 +1,6 @@
 import { Editor } from "@monaco-editor/react";
-
-import { type OcifSchemaBase, validateOcifBase } from "../ocif";
+import type { OcifSchemaBase } from "ocif-thing-schema";
+import { validateOcifBase } from "ocif-thing-validate";
 
 export const OcifJsonEditor = ({
   value,
