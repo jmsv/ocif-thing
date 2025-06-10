@@ -57,7 +57,7 @@ export const NodeContainer = ({
 
   return (
     <div
-      className={clsx({ "ring ring-blue-500": isSelected })}
+      className={clsx("ocif-node", { "ocif-node-selected": isSelected })}
       style={{
         ...baseNodeStyles,
         width: node.size[0],

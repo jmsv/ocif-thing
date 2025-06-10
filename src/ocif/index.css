@@ -1,7 +1,7 @@
 .ocif-editor-root {
   --ocif-editor-color-canvas-background: 0 0 98%;
   --ocif-editor-color-ui-background: 0 0 100%;
-  --ocif-editor-color-primary: 217 91 60%;
+  --ocif-editor-color-primary: 212 100 50%;
   --ocif-editor-color-accent: 0 0 96%;
   --ocif-editor-color-border: 0 0 94%;
   --ocif-editor-color-muted: 0 0 60%;
@@ -46,6 +46,12 @@
       inset: 0;
       z-index: 0;
       transform-origin: top left;
+
+      & .ocif-node {
+        &.ocif-node-selected {
+          outline: 1px solid hsl(var(--ocif-editor-color-primary) / 0.5);
+        }
+      }
     }
   }
 
@@ -77,9 +83,9 @@
     & .ocif-selection-preview {
       position: absolute;
       border-width: 2px;
-      border-style: solid;
+      border-style: dashed;
       border-color: hsl(var(--ocif-editor-color-primary));
-      background-color: hsl(var(--ocif-editor-color-primary) / 0.1);
+      background-color: hsl(var(--ocif-editor-color-primary) / 0.05);
       pointer-events: none;
       user-select: none;
     }
