@@ -2,6 +2,7 @@ import "./ocif/index.css";
 
 import { useState } from "react";
 
+import icon from "../public/icon.svg";
 import { OcifJsonEditor } from "./components/OcifJsonEditor";
 import { OcifEditor, type OcifSchemaBase, useOcifEditor } from "./ocif";
 import { exampleDefault } from "./ocif/examples/default";
@@ -18,7 +19,10 @@ function App() {
     <div className="app">
       <aside className="app-aside">
         <div className="app-aside-header">
-          <h1 className="text-xl font-bold">ocif thing</h1>
+          <h1>
+            <img src={icon} alt="ocif icon" />
+            ocif thing
+          </h1>
         </div>
 
         <OcifJsonEditor value={value} onChange={setValue} />

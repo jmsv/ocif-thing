@@ -12,11 +12,19 @@
     flex: 1;
 
     & .app-aside-header {
-      padding: 16px;
+      padding: 12px 8px;
 
       & h1 {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 1.25rem;
-        font-weight: 800;
+        font-weight: 700;
+
+        & img {
+          width: 32px;
+          height: 32px;
+        }
       }
     }
 
