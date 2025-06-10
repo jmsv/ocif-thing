@@ -51,8 +51,7 @@ export interface UseOcifEditor {
   setDrawingBounds: (bounds: SelectionBounds | null) => void;
 
   // Actions
-  setScale: (newScale: number) => void;
-  zoomBy: (delta: number, anchor?: { x: number; y: number }) => void;
+  zoomBy: (delta?: number, anchor?: { x: number; y: number }) => void;
 
   // Document manipulation
   document: OcifSchemaBase;
@@ -186,15 +185,8 @@ export const useOcifEditor = ({
     [updateDocument, mode]
   );
 
-  const setScale = useCallback((newScale: number) => {
-    setState((prev) => ({
-      ...prev,
-      scale: Math.max(0.2, Math.min(5, newScale)),
-    }));
-  }, []);
-
   const zoomBy = useCallback(
-    (delta: number, anchor?: { x: number; y: number }) => {
+    (delta?: number, anchor?: { x: number; y: number }) => {
       const container = canvasRef.current;
       if (!container) return;
 
@@ -209,10 +201,10 @@ export const useOcifEditor = ({
       setState((prev) => {
         const minScale = 0.2;
         const maxScale = 5;
-        const newScale = Math.max(
-          minScale,
-          Math.min(maxScale, prev.scale + delta)
-        );
+        // delta undefined means reset to 100%
+        const newScale = delta
+          ? Math.max(minScale, Math.min(maxScale, prev.scale + delta))
+          : 1;
         if (newScale === prev.scale) return prev;
 
         const pointX = (anchorX - prev.position.x) / prev.scale;
@@ -584,11 +576,6 @@ export const useOcifEditor = ({
     };
   }, []);
 
-  const setModeAndClearSelection = useCallback((newMode: EditorMode) => {
-    setSelectedNodes(new Set());
-    setMode(newMode);
-  }, []);
-
   return {
     // Canvas state
     canvasRef,
@@ -600,7 +587,7 @@ export const useOcifEditor = ({
 
     // Mode and selection
     mode,
-    setMode: setModeAndClearSelection,
+    setMode,
     selectedNodes,
     setSelectedNodes,
 
@@ -611,7 +598,6 @@ export const useOcifEditor = ({
     setDrawingBounds,
 
     // Actions
-    setScale,
     zoomBy,
 
     // Document manipulation

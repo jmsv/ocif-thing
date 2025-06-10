@@ -1,13 +1,8 @@
 module.exports = {
-  plugins: [
-    "@trivago/prettier-plugin-sort-imports",
-    "prettier-plugin-tailwindcss",
-  ],
-  tailwindStylesheet: "./src/index.css",
+  plugins: ["@trivago/prettier-plugin-sort-imports"],
   printWidth: 80,
   endOfLine: "lf",
   trailingComma: "es5",
-  tailwindFunctions: ["cn", "cva", "clsx"],
   importOrder: [
     // server-only marker
     "^server-only$",

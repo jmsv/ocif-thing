@@ -87,9 +87,7 @@ const ToolbarButton = ({
         "ocif-toolbar-button-pressed": pressed,
       })}
     >
-      <div className="absolute right-1 bottom-0.5 text-[8px] font-bold uppercase opacity-30">
-        {shortcutKey}
-      </div>
+      <div className="ocif-toolbar-button-shortcut">{shortcutKey}</div>
       <Icon />
     </Toggle.Root>
   );

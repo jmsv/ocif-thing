@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@tailwindcss/vite": "^4.1.8",
     "ajv": "^8.17.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -24,9 +23,7 @@
     "perfect-freehand": "^1.2.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "svg-path-bounds": "^1.0.2",
-    "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.8"
+    "svg-path-bounds": "^1.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
@@ -43,7 +40,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.12",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.33.1",
     "vite": "^6.3.5"

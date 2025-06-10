@@ -25,7 +25,7 @@ export const OcifJsonEditor = ({
   };
 
   return (
-    <div className="w-full flex-1 border-t py-2">
+    <div className="ocif-json-editor">
       <Editor
         language="json"
         value={JSON.stringify(value, null, 2)}

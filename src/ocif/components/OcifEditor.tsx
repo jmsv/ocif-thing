@@ -17,7 +17,11 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
   const { handleKeyDown, handleKeyUp } = useKeyboardShortcuts({ editor });
 
   return (
-    <div className="ocif-editor-root">
+    <div
+      className="ocif-editor-root"
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+    >
       <div
         ref={editor.canvasRef}
         className={clsx("ocif-editor", {
@@ -32,8 +36,6 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
         onMouseMove={editor.handleMouseMove}
         onMouseUp={editor.handleMouseUp}
         onMouseLeave={editor.handleMouseUp}
-        onKeyDown={handleKeyDown}
-        onKeyUp={handleKeyUp}
         tabIndex={0}
       >
         <div

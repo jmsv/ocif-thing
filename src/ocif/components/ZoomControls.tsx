@@ -14,7 +14,7 @@ export const ZoomControls = ({ editor }: { editor: UseOcifEditor }) => {
       </button>
 
       <button
-        onClick={() => editor.setScale(1)}
+        onClick={() => editor.zoomBy()}
         className="ocif-zoom-button ocif-zoom-button-center"
         aria-label="Reset zoom to 100%"
       >

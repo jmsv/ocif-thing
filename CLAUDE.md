@@ -47,7 +47,6 @@ OCIF documents contain:
 ### Development Notes
 
 - Uses Bun as package manager
-- Tailwind CSS for styling with shadcn/ui components
 - Monaco Editor for JSON editing
 - Husky + lint-staged for pre-commit hooks
 - Schema generation via `build-schema.ts`

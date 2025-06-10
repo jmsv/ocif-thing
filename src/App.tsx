@@ -15,14 +15,14 @@ function App() {
   });
 
   return (
-    <div className="grid h-screen grid-cols-[380px_1fr] grid-rows-1">
-      <div className="flex flex-col border-r">
-        <div className="p-4">
+    <div className="app">
+      <aside className="app-aside">
+        <div className="app-aside-header">
           <h1 className="text-xl font-bold">ocif thing</h1>
         </div>
 
         <OcifJsonEditor value={value} onChange={setValue} />
-      </div>
+      </aside>
 
       <OcifEditor editor={editor} />
     </div>
