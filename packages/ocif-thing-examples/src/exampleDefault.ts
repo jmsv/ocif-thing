@@ -1,4 +1,3 @@
-// https://github.com/ocwg/spec/blob/main/spec/v0.5/spec.md#hello-world-example
 import type { OcifSchemaBase } from "ocif-thing-schema";
 
 export const exampleDefault: OcifSchemaBase = {
