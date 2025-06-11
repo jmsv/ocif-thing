@@ -20,14 +20,14 @@ npm install ocif-thing-editor
 
 ```diff
   import { useState } from "react"
-  
+
 + import { OcifEditor, useOcifEditor } from "ocif-thing-editor"
 + import "ocif-thing-editor/styles.css"
-  
+
   function App() {
 +   const [value, setValue] = useState(initialValue)
 +   const editor = useOcifEditor({ value, onChange: setValue })
-  
+
     return (
       <div style={{ width: "100vw", height: "100vh" }}>
 +       <OcifEditor editor={editor} />
