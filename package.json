@@ -14,13 +14,15 @@
     "format": "prettier --write \"./**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint .",
     "prepare": "husky",
-    "preview": "turbo preview"
+    "preview": "turbo preview",
+    "release": "turbo build --filter ocif-thing-editor && changeset publish"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@eslint/js": "^9.28.0",
     "@types/node": "^22.15.31",
     "eslint": "^9.28.0",
