@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "prepare": "husky",
     "preview": "turbo preview",
-    "release": "turbo build --filter ocif-thing-editor && changeset publish"
+    "release": "turbo build && turbo check-types && changeset publish"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",
