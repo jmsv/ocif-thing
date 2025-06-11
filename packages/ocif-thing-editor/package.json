@@ -1,7 +1,24 @@
 {
   "name": "ocif-thing-editor",
   "version": "0.0.2",
-  "description": "ocif thing editor",
+  "description": "React component library for editing OCIF (Open Canvas Interchange Format) documents",
+  "keywords": [
+    "ocif",
+    "editor",
+    "react",
+    "components"
+  ],
+  "homepage": "https://github.com/jmsv/ocif-thing",
+  "bugs": {
+    "url": "https://github.com/jmsv/ocif-thing/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmsv/ocif-thing.git",
+    "directory": "packages/ocif-thing-editor"
+  },
+  "license": "MIT",
+  "author": "James Vickery",
   "type": "module",
   "exports": {
     ".": "./dist/index.js",

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a monorepo for OCIF (Open Container Image Format) tools, implementing the OCIF Spec v0.5. The project uses Bun as the package manager and Turbo for monorepo orchestration.
+This is a monorepo for OCIF (Open Canvas Interchange Format) tools, implementing the OCIF Spec v0.5. The project uses Bun as the package manager and Turbo for monorepo orchestration.
 
 ### Architecture
 
