@@ -8,6 +8,34 @@ More about OCIF: [canvasprotocol.org](https://canvasprotocol.org)
 
 ocif thing playground: [ocif.jmsv.dev](https://ocif.jmsv.dev)
 
+## `ocif-thing-editor` usage
+
+### Install
+
+```sh
+npm install ocif-thing-editor
+```
+
+### React component
+
+```diff
+  import { useState } from "react"
+  
++ import { OcifEditor, useOcifEditor } from "ocif-thing-editor"
++ import "ocif-thing-editor/styles.css"
+  
+  function App() {
++   const [value, setValue] = useState(initialValue)
++   const editor = useOcifEditor({ value, onChange: setValue })
+  
+    return (
+      <div style={{ width: "100vw", height: "100vh" }}>
++       <OcifEditor editor={editor} />
+      </div>
+    )
+  }
+```
+
 ## Development
 
 ```sh
