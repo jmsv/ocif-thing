@@ -12,7 +12,7 @@ function App() {
   const [value, setValue] = useState<OcifSchemaBase>(exampleDefault);
 
   const editor = useOcifEditor({
-    document: value,
+    value,
     onChange: setValue,
   });
 

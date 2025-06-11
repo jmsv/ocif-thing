@@ -75,12 +75,12 @@ export interface UseOcifEditor {
 }
 
 interface UseOcifEditorOptions {
-  document: OcifSchemaBase;
+  value: OcifSchemaBase;
   onChange: (document: OcifSchemaBase) => void;
 }
 
 export const useOcifEditor = ({
-  document,
+  value: document,
   onChange,
 }: UseOcifEditorOptions): UseOcifEditor => {
   const [state, setState] = useState<OcifEditorState>({
