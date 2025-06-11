@@ -10,6 +10,8 @@ ocif thing playground: [ocif.jmsv.dev](https://ocif.jmsv.dev)
 
 ## `ocif-thing-editor` usage
 
+https://www.npmjs.com/package/ocif-thing-editor
+
 ### Install
 
 ```sh
