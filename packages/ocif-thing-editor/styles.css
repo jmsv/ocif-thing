@@ -5,7 +5,7 @@
   --ocif-editor-color-accent: 0 0 96%;
   --ocif-editor-color-border: 0 0 94%;
   --ocif-editor-color-muted: 0 0 60%;
-  --ocif-editor-font-family: sans-serif;
+  --ocif-editor-font-family: system-ui, Helvetica, Arial, sans-serif;
 
   position: relative;
   width: 100%;
