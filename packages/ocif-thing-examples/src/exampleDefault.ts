@@ -7,6 +7,7 @@ export const exampleDefault: OcifSchemaBase = {
       id: "n1",
       position: [100, 100],
       size: [200, 100],
+      rotation: 350,
       resource: "r1",
       data: [
         {

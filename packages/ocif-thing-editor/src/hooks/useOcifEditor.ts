@@ -27,6 +27,11 @@ interface OcifEditorState {
   isDrawingShape: boolean;
   shapeStart: { x: number; y: number };
   drawingPoints: Array<[number, number]> | undefined;
+  isRotating: boolean;
+  rotationStart: { x: number; y: number };
+  rotationCenter: { x: number; y: number };
+  initialRotationAngle: number;
+  initialNodeStates: Map<string, { position: number[]; rotation: number }>;
 }
 
 export interface UseOcifEditor {
@@ -35,6 +40,7 @@ export interface UseOcifEditor {
   position: { x: number; y: number };
   scale: number;
   isDraggingNodes: boolean;
+  isRotating: boolean;
   transform: string;
   drawingPoints: Array<[number, number]> | undefined;
 
@@ -56,10 +62,13 @@ export interface UseOcifEditor {
   // Document manipulation
   document: OcifSchemaBase;
   updateDocument: (updater: (doc: OcifSchemaBase) => OcifSchemaBase) => void;
-  updateNodeGeometry: (
+  updateNodeProperties: (
     nodeId: string,
-    position: number[],
-    size: number[]
+    properties: {
+      position?: number[];
+      size?: number[];
+      rotation?: number;
+    }
   ) => void;
   createShapeNode: (bounds: SelectionBounds) => void;
 
@@ -72,6 +81,11 @@ export interface UseOcifEditor {
     e: React.MouseEvent,
     nodePositions: Map<string, number[]>
   ) => void;
+  startRotation: (
+    e: React.MouseEvent,
+    centerX: number,
+    centerY: number
+  ) => void;
 }
 
 interface UseOcifEditorOptions {
@@ -83,7 +97,7 @@ export const useOcifEditor = ({
   value: document,
   onChange,
 }: UseOcifEditorOptions): UseOcifEditor => {
-  const [state, setState] = useState<OcifEditorState>({
+  const [editorState, setEditorState] = useState<OcifEditorState>({
     position: { x: 0, y: 0 },
     scale: 1,
     isDragging: false,
@@ -96,6 +110,11 @@ export const useOcifEditor = ({
     isDrawingShape: false,
     shapeStart: { x: 0, y: 0 },
     drawingPoints: undefined,
+    isRotating: false,
+    rotationStart: { x: 0, y: 0 },
+    rotationCenter: { x: 0, y: 0 },
+    initialRotationAngle: 0,
+    initialNodeStates: new Map(),
   });
 
   const [mode, setMode] = useState<EditorMode>("select");
@@ -108,7 +127,9 @@ export const useOcifEditor = ({
   const [drawingNodeId, setDrawingNodeId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  const pendingUpdatesRef = useRef<Map<string, number[]>>(new Map());
+  const pendingUpdatesRef = useRef<
+    Map<string, { position?: number[]; size?: number[]; rotation?: number }>
+  >(new Map());
   const rafIdRef = useRef<number | null>(null);
 
   const updateDocument = useCallback(
@@ -118,10 +139,21 @@ export const useOcifEditor = ({
     [document, onChange]
   );
 
-  const updateNodeGeometry = useCallback(
-    (nodeId: string, position: number[], size: number[]) => {
+  const updateNodeProperties = useCallback(
+    (
+      nodeId: string,
+      properties: {
+        position?: number[];
+        size?: number[];
+        rotation?: number;
+      }
+    ) => {
       // Batch updates using requestAnimationFrame for performance
-      pendingUpdatesRef.current.set(nodeId, [...position, ...size]);
+      const existingUpdate = pendingUpdatesRef.current.get(nodeId) || {};
+      pendingUpdatesRef.current.set(nodeId, {
+        ...existingUpdate,
+        ...properties,
+      });
 
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
@@ -138,14 +170,17 @@ export const useOcifEditor = ({
             nodes: doc.nodes?.map((node) => {
               const update = updates.get(node.id);
               if (update) {
-                const [x, y, w, h] = update;
-                return {
-                  ...node,
-                  position: [x, y],
-                  ...(w !== undefined && h !== undefined
-                    ? { size: [w, h] }
-                    : {}),
-                };
+                const nodeUpdates: Partial<typeof node> = {};
+                if (update.position !== undefined) {
+                  nodeUpdates.position = update.position;
+                }
+                if (update.size !== undefined) {
+                  nodeUpdates.size = update.size;
+                }
+                if (update.rotation !== undefined) {
+                  nodeUpdates.rotation = update.rotation;
+                }
+                return { ...node, ...nodeUpdates };
               }
               return node;
             }),
@@ -198,7 +233,7 @@ export const useOcifEditor = ({
         anchorY = anchor.y;
       }
 
-      setState((prev) => {
+      setEditorState((prev) => {
         const minScale = 0.2;
         const maxScale = 5;
         // delta undefined means reset to 100%
@@ -233,7 +268,7 @@ export const useOcifEditor = ({
       const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
 
       if (mode === "hand") {
-        setState((prev) => ({
+        setEditorState((prev) => ({
           ...prev,
           isDragging: true,
           dragStart: {
@@ -241,15 +276,15 @@ export const useOcifEditor = ({
             y: e.clientY - prev.position.y,
           },
         }));
-      } else if (mode === "select" && !state.isDraggingNodes) {
+      } else if (mode === "select" && !editorState.isDraggingNodes) {
         const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
-          state.position,
-          state.scale
+          editorState.position,
+          editorState.scale
         );
 
-        setState((prev) => ({
+        setEditorState((prev) => ({
           ...prev,
           isSelecting: true,
           selectionStart: { x: canvasX, y: canvasY },
@@ -265,11 +300,11 @@ export const useOcifEditor = ({
         const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
-          state.position,
-          state.scale
+          editorState.position,
+          editorState.scale
         );
 
-        setState((prev) => ({
+        setEditorState((prev) => ({
           ...prev,
           isDrawingShape: true,
           shapeStart: { x: canvasX, y: canvasY },
@@ -300,18 +335,24 @@ export const useOcifEditor = ({
         const { x: canvasX, y: canvasY } = screenToCanvasPosition(
           clientX,
           clientY,
-          state.position,
-          state.scale
+          editorState.position,
+          editorState.scale
         );
 
-        setState((prev) => ({
+        setEditorState((prev) => ({
           ...prev,
           isDrawing: true,
           drawingPoints: [[canvasX, canvasY]],
         }));
       }
     },
-    [mode, state.position, state.scale, state.isDraggingNodes, updateDocument]
+    [
+      mode,
+      editorState.position,
+      editorState.scale,
+      editorState.isDraggingNodes,
+      updateDocument,
+    ]
   );
 
   const handleMouseMove = useCallback(
@@ -321,7 +362,7 @@ export const useOcifEditor = ({
 
       const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
 
-      setState((prev) => {
+      setEditorState((prev) => {
         if (prev.isDragging && mode === "hand") {
           return {
             ...prev,
@@ -336,8 +377,8 @@ export const useOcifEditor = ({
           const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
-            state.position,
-            state.scale
+            editorState.position,
+            editorState.scale
           );
 
           setSelectionBounds({
@@ -352,7 +393,7 @@ export const useOcifEditor = ({
           const { deltaX, deltaY } = calculateScaledDelta(
             prev.nodeDragStart,
             { x: clientX, y: clientY },
-            state.scale
+            editorState.scale
           );
 
           prev.initialNodePositions.forEach((initialPos, nodeId) => {
@@ -361,17 +402,147 @@ export const useOcifEditor = ({
                 initialPos[0] + deltaX,
                 initialPos[1] + deltaY,
               ];
-              updateNodeGeometry(nodeId, newPosition, []);
+              updateNodeProperties(nodeId, { position: newPosition });
             }
           });
+        }
+
+        if (prev.isRotating && mode === "select") {
+          const { x: canvasX, y: canvasY } = screenToCanvasPosition(
+            clientX,
+            clientY,
+            editorState.position,
+            editorState.scale
+          );
+
+          // Calculate current vector from center to mouse
+          const currentVector = {
+            x: canvasX - prev.rotationCenter.x,
+            y: canvasY - prev.rotationCenter.y,
+          };
+
+          // Calculate current angle
+          const currentAngle = Math.atan2(currentVector.y, currentVector.x);
+
+          // Calculate total angle difference from initial angle
+          let totalRotation =
+            (currentAngle - prev.initialRotationAngle) * (180 / Math.PI);
+
+          // Normalize angle to -180 to 180 range
+          while (totalRotation > 180) totalRotation -= 360;
+          while (totalRotation < -180) totalRotation += 360;
+
+          // Apply rotation to all selected nodes based on their initial states
+          const nodeUpdates = new Map();
+
+          prev.initialNodeStates.forEach((initialState, nodeId) => {
+            const node = document.nodes?.find((n) => n.id === nodeId);
+
+            if (node && node.size && node.size.length >= 2) {
+              // Calculate new rotation and normalize to 0-360 range
+              const rawRotation = initialState.rotation + totalRotation;
+              let newRotation = ((rawRotation % 360) + 360) % 360;
+
+              // Only apply snapping if we're rotating a single node
+              if (prev.initialNodeStates.size === 1) {
+                const snapThreshold = 10; // degrees
+                const snapAngles = [0, 90, 180, 270, 360];
+
+                // Find the closest snap angle, considering wrap-around
+                const closestSnapAngle = snapAngles.reduce(
+                  (closest, snapAngle) => {
+                    // Calculate the shortest distance between angles using modulo
+                    const diff = Math.abs(
+                      ((newRotation - snapAngle + 180) % 360) - 180
+                    );
+                    const closestDiff = Math.abs(
+                      ((newRotation - closest + 180) % 360) - 180
+                    );
+                    return diff < closestDiff ? snapAngle : closest;
+                  }
+                );
+
+                // If within threshold, snap to the closest angle
+                const diff = Math.abs(
+                  ((newRotation - closestSnapAngle + 180) % 360) - 180
+                );
+                if (diff <= snapThreshold) {
+                  // Use 0 instead of 360 for consistency
+                  newRotation = closestSnapAngle === 360 ? 0 : closestSnapAngle;
+                }
+              }
+
+              // Calculate initial node center
+              const initialNodeCenter = {
+                x: initialState.position[0] + node.size[0] / 2,
+                y: initialState.position[1] + node.size[1] / 2,
+              };
+
+              // Calculate vector from rotation center to initial node center
+              const vector = {
+                x: initialNodeCenter.x - prev.rotationCenter.x,
+                y: initialNodeCenter.y - prev.rotationCenter.y,
+              };
+
+              // Rotate the vector by total rotation
+              const rad = (totalRotation * Math.PI) / 180;
+              const cos = Math.cos(rad);
+              const sin = Math.sin(rad);
+
+              const rotatedVector = {
+                x: vector.x * cos - vector.y * sin,
+                y: vector.x * sin + vector.y * cos,
+              };
+
+              // Calculate new node center
+              const newNodeCenter = {
+                x: prev.rotationCenter.x + rotatedVector.x,
+                y: prev.rotationCenter.y + rotatedVector.y,
+              };
+
+              // Calculate new position (top-left corner)
+              const newPosition = [
+                newNodeCenter.x - node.size[0] / 2,
+                newNodeCenter.y - node.size[1] / 2,
+              ];
+
+              nodeUpdates.set(nodeId, {
+                position: newPosition,
+                rotation: newRotation,
+              });
+            }
+          });
+
+          // Apply all updates in a single document update
+          if (nodeUpdates.size > 0) {
+            if (rafIdRef.current !== null) {
+              cancelAnimationFrame(rafIdRef.current);
+            }
+            rafIdRef.current = requestAnimationFrame(() => {
+              updateDocument((doc) => ({
+                ...doc,
+                nodes: doc.nodes?.map((node) => {
+                  const update = nodeUpdates.get(node.id);
+                  return update
+                    ? {
+                        ...node,
+                        position: update.position,
+                        rotation: update.rotation,
+                      }
+                    : node;
+                }),
+              }));
+              rafIdRef.current = null;
+            });
+          }
         }
 
         if (prev.isDrawingShape && drawingNodeId) {
           const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
-            state.position,
-            state.scale
+            editorState.position,
+            editorState.scale
           );
 
           const minX = Math.min(prev.shapeStart.x, canvasX);
@@ -379,15 +550,18 @@ export const useOcifEditor = ({
           const width = Math.abs(canvasX - prev.shapeStart.x);
           const height = Math.abs(canvasY - prev.shapeStart.y);
 
-          updateNodeGeometry(drawingNodeId, [minX, minY], [width, height]);
+          updateNodeProperties(drawingNodeId, {
+            position: [minX, minY],
+            size: [width, height],
+          });
         }
 
         if (prev.drawingPoints && mode === "draw") {
           const { x: canvasX, y: canvasY } = screenToCanvasPosition(
             clientX,
             clientY,
-            state.position,
-            state.scale
+            editorState.position,
+            editorState.scale
           );
 
           return {
@@ -399,11 +573,19 @@ export const useOcifEditor = ({
         return prev;
       });
     },
-    [mode, state.position, state.scale, updateNodeGeometry, drawingNodeId]
+    [
+      mode,
+      editorState.position,
+      editorState.scale,
+      updateNodeProperties,
+      updateDocument,
+      drawingNodeId,
+      document.nodes,
+    ]
   );
 
   const handleMouseUp = useCallback(() => {
-    if (state.isDrawingShape && drawingNodeId) {
+    if (editorState.isDrawingShape && drawingNodeId) {
       const node = document.nodes?.find((n) => n.id === drawingNodeId);
       if (
         node &&
@@ -417,15 +599,18 @@ export const useOcifEditor = ({
         if (width < 20 || height < 20) {
           const x = node.position[0];
           const y = node.position[1];
-          updateNodeGeometry(drawingNodeId, [x, y], [100, 100]);
+          updateNodeProperties(drawingNodeId, {
+            position: [x, y],
+            size: [100, 100],
+          });
         }
       }
       setDrawingNodeId(null);
       setMode("select");
     }
 
-    if (state.drawingPoints) {
-      const points = state.drawingPoints;
+    if (editorState.drawingPoints) {
+      const points = editorState.drawingPoints;
       if (points.length >= 2) {
         const perfectPoints = getPerfectPointsFromPoints(points);
 
@@ -463,7 +648,7 @@ export const useOcifEditor = ({
       }
     }
 
-    setState((prev) => {
+    setEditorState((prev) => {
       if (prev.isSelecting && selectionBounds && document.nodes) {
         const bounds = selectionBounds;
         const minX = Math.min(bounds.startX, bounds.endX);
@@ -501,14 +686,38 @@ export const useOcifEditor = ({
         setSelectedNodes(selectedNodeIds);
       }
 
+      // Round positions and rotations when finishing rotation
+      if (prev.isRotating && prev.initialNodeStates.size > 0) {
+        updateDocument((doc) => ({
+          ...doc,
+          nodes: doc.nodes?.map((node) => {
+            if (prev.initialNodeStates.has(node.id)) {
+              return {
+                ...node,
+                position: node.position
+                  ? [Math.round(node.position[0]), Math.round(node.position[1])]
+                  : node.position,
+                rotation:
+                  node.rotation !== undefined
+                    ? ((Math.round(node.rotation) % 360) + 360) % 360
+                    : node.rotation,
+              };
+            }
+            return node;
+          }),
+        }));
+      }
+
       return {
         ...prev,
         isDragging: false,
         isSelecting: false,
         isDraggingNodes: false,
         isDrawingShape: false,
+        isRotating: false,
         drawingPoints: undefined,
         initialNodePositions: new Map(),
+        initialNodeStates: new Map(),
       };
     });
 
@@ -518,11 +727,11 @@ export const useOcifEditor = ({
   }, [
     mode,
     selectionBounds,
-    state.isDrawingShape,
-    state.drawingPoints,
+    editorState.isDrawingShape,
+    editorState.drawingPoints,
     drawingNodeId,
     document.nodes,
-    updateNodeGeometry,
+    updateNodeProperties,
     updateDocument,
   ]);
 
@@ -537,7 +746,7 @@ export const useOcifEditor = ({
 
       const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
 
-      setState((prev) => ({
+      setEditorState((prev) => ({
         ...prev,
         isDraggingNodes: true,
         nodeDragStart: { x: clientX, y: clientY },
@@ -545,6 +754,52 @@ export const useOcifEditor = ({
       }));
     },
     []
+  );
+
+  const startRotation = useCallback(
+    (e: React.MouseEvent, centerX: number, centerY: number) => {
+      const container = canvasRef.current;
+      if (!container) return;
+
+      const { x: clientX, y: clientY } = getRelativeMousePosition(e, container);
+      const { x: canvasX, y: canvasY } = screenToCanvasPosition(
+        clientX,
+        clientY,
+        editorState.position,
+        editorState.scale
+      );
+
+      // Calculate initial vector from center to mouse
+      const initialVector = {
+        x: canvasX - centerX,
+        y: canvasY - centerY,
+      };
+
+      // Calculate initial angle
+      const initialAngle = Math.atan2(initialVector.y, initialVector.x);
+
+      // Store initial states of all selected nodes
+      const initialNodeStates = new Map();
+      selectedNodes.forEach((nodeId) => {
+        const node = document.nodes?.find((n) => n.id === nodeId);
+        if (node && node.position && node.position.length >= 2) {
+          initialNodeStates.set(nodeId, {
+            position: [...node.position],
+            rotation: node.rotation ?? 0,
+          });
+        }
+      });
+
+      setEditorState((prev) => ({
+        ...prev,
+        isRotating: true,
+        rotationStart: { x: clientX, y: clientY },
+        rotationCenter: { x: centerX, y: centerY },
+        initialRotationAngle: initialAngle,
+        initialNodeStates,
+      }));
+    },
+    [editorState.position, editorState.scale, selectedNodes, document.nodes]
   );
 
   const handleWheel = useCallback(
@@ -577,13 +832,14 @@ export const useOcifEditor = ({
   }, []);
 
   return {
-    // Canvas state
+    // Editor state
     canvasRef,
-    position: state.position,
-    scale: state.scale,
-    isDraggingNodes: state.isDraggingNodes,
-    transform: `translate(${state.position.x}px, ${state.position.y}px) scale(${state.scale})`,
-    drawingPoints: state.drawingPoints,
+    position: editorState.position,
+    scale: editorState.scale,
+    isDraggingNodes: editorState.isDraggingNodes,
+    isRotating: editorState.isRotating,
+    transform: `translate(${editorState.position.x}px, ${editorState.position.y}px) scale(${editorState.scale})`,
+    drawingPoints: editorState.drawingPoints,
 
     // Mode and selection
     mode,
@@ -603,7 +859,7 @@ export const useOcifEditor = ({
     // Document manipulation
     document,
     updateDocument,
-    updateNodeGeometry,
+    updateNodeProperties,
     createShapeNode,
 
     // Internal event handlers
@@ -611,5 +867,6 @@ export const useOcifEditor = ({
     handleMouseMove,
     handleMouseUp,
     startNodeDrag,
+    startRotation,
   };
 };

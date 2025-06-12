@@ -275,6 +275,22 @@
           cursor: se-resize;
         }
       }
+
+      & .ocif-selection-bounds-rotate-handle {
+        pointer-events: auto;
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        border-width: 2px;
+        border-style: solid;
+        border-color: hsl(var(--ocif-editor-color-canvas-background));
+        background-color: hsl(var(--ocif-editor-color-primary));
+        top: -24px;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        cursor: grab;
+      }
     }
   }
 }

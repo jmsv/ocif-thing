@@ -55,3 +55,42 @@ export function calculateScaledDelta(
     deltaY: (current.y - start.y) / scale,
   };
 }
+
+/**
+ * Calculate the bounding box of a rotated rectangle
+ */
+export function getRotatedBounds(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  rotation: number
+): { left: number; top: number; right: number; bottom: number } {
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  const rad = (rotation * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  const corners = [
+    [x - centerX, y - centerY],
+    [x + width - centerX, y - centerY],
+    [x + width - centerX, y + height - centerY],
+    [x - centerX, y + height - centerY],
+  ];
+
+  const rotatedCorners = corners.map(([dx, dy]) => [
+    centerX + dx * cos - dy * sin,
+    centerY + dx * sin + dy * cos,
+  ]);
+
+  const xs = rotatedCorners.map(([x]) => x);
+  const ys = rotatedCorners.map(([, y]) => y);
+
+  return {
+    left: Math.min(...xs),
+    top: Math.min(...ys),
+    right: Math.max(...xs),
+    bottom: Math.max(...ys),
+  };
+}

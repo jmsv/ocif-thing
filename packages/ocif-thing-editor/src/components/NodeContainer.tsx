@@ -62,7 +62,7 @@ export const NodeContainer = ({
         ...baseNodeStyles,
         width: node.size[0],
         height: node.size[1],
-        transform: `translate(${node.position[0]}px, ${node.position[1]}px)`,
+        transform: `translate(${node.position[0]}px, ${node.position[1]}px) rotate(${node.rotation ?? 0}deg)`,
         cursor: mode === "select" ? "pointer" : "default",
       }}
       onMouseDown={handleMouseDown}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
-import { canvasToScreenPosition } from "../utils/coordinates";
+import { canvasToScreenPosition, getRotatedBounds } from "../utils/coordinates";
 
 type HandlePosition =
   | "top-left"
@@ -23,6 +23,7 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
       id: string;
       position: number[];
       size: number[];
+      rotation: number;
     }>;
   } | null>(null);
 
@@ -95,33 +96,59 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
       const newWidth = newBounds.right - newBounds.left;
       const newHeight = newBounds.bottom - newBounds.top;
 
+      // Calculate scale factors from bounds change
+      const scaleX = originalWidth > 0 ? newWidth / originalWidth : 1;
+      const scaleY = originalHeight > 0 ? newHeight / originalHeight : 1;
+
       // Apply transformations to selected nodes
       resizeState.initialNodeGeometries.forEach((initialGeometry) => {
+        const rotation = initialGeometry.rotation;
         const originalLeft = initialGeometry.position[0];
         const originalTop = initialGeometry.position[1];
         const originalNodeWidth = initialGeometry.size[0];
         const originalNodeHeight = initialGeometry.size[1];
 
-        // Calculate relative position within original bounds
-        const relativeX =
-          (originalLeft - resizeState.startBounds.left) / originalWidth;
-        const relativeY =
-          (originalTop - resizeState.startBounds.top) / originalHeight;
-        const relativeWidth = originalNodeWidth / originalWidth;
-        const relativeHeight = originalNodeHeight / originalHeight;
+        // Calculate the center of the original node
+        const originalCenter = {
+          x: originalLeft + originalNodeWidth / 2,
+          y: originalTop + originalNodeHeight / 2,
+        };
 
-        // Calculate new position and size
-        const newLeft = Math.round(newBounds.left + relativeX * newWidth);
-        const newTop = Math.round(newBounds.top + relativeY * newHeight);
-        const newNodeWidth = Math.round(relativeWidth * newWidth);
-        const newNodeHeight = Math.round(relativeHeight * newHeight);
+        // Calculate relative position of center within original bounds
+        const relativeX =
+          (originalCenter.x - resizeState.startBounds.left) / originalWidth;
+        const relativeY =
+          (originalCenter.y - resizeState.startBounds.top) / originalHeight;
+
+        // Calculate new center position (this moves with the selection)
+        const newCenter = {
+          x: newBounds.left + relativeX * newWidth,
+          y: newBounds.top + relativeY * newHeight,
+        };
+
+        // Apply scale in a rotation-aware way (works for all rotations including 0°)
+        // Convert rotation to radians
+        const rad = (rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+
+        // Transform the scale factors to the node's coordinate system
+        // When user drags horizontally on a 90° rotated node, it should affect the node's height
+        const localScaleX = cos * cos * scaleX + sin * sin * scaleY;
+        const localScaleY = sin * sin * scaleX + cos * cos * scaleY;
+
+        const newNodeWidth = Math.round(originalNodeWidth * localScaleX);
+        const newNodeHeight = Math.round(originalNodeHeight * localScaleY);
+
+        // Calculate new top-left position
+        const newLeft = Math.round(newCenter.x - newNodeWidth / 2);
+        const newTop = Math.round(newCenter.y - newNodeHeight / 2);
 
         // Update the document
-        editor.updateNodeGeometry(
-          initialGeometry.id,
-          [newLeft, newTop],
-          [newNodeWidth, newNodeHeight]
-        );
+        editor.updateNodeProperties(initialGeometry.id, {
+          position: [newLeft, newTop],
+          size: [newNodeWidth, newNodeHeight],
+        });
       });
     },
     [isResizing, resizeState, editor]
@@ -147,25 +174,45 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
   if (editor.selectedNodes.size === 0) return null;
   if (selectedNodesList.length === 0) return null;
 
+  // Hide selection bounds during interactive operations
+  if (editor.isDraggingNodes || editor.isRotating || isResizing) return null;
+
   const bounds = selectedNodesList.reduce<Bounds | null>((acc, node) => {
-    const left = node.position![0];
-    const top = node.position![1];
-    const right = left + node.size![0];
-    const bottom = top + node.size![1];
+    const rotation = node.rotation ?? 0;
+    const x = node.position![0];
+    const y = node.position![1];
+    const width = node.size![0];
+    const height = node.size![1];
+
+    const rotatedBounds = getRotatedBounds(x, y, width, height, rotation);
 
     if (!acc) {
-      return { left, top, right, bottom };
+      return rotatedBounds;
     }
 
     return {
-      left: Math.min(acc.left, left),
-      top: Math.min(acc.top, top),
-      right: Math.max(acc.right, right),
-      bottom: Math.max(acc.bottom, bottom),
+      left: Math.min(acc.left, rotatedBounds.left),
+      top: Math.min(acc.top, rotatedBounds.top),
+      right: Math.max(acc.right, rotatedBounds.right),
+      bottom: Math.max(acc.bottom, rotatedBounds.bottom),
     };
   }, null);
 
   if (!bounds) return null;
+
+  // Calculate selection center
+  const selectionCenter = {
+    x: (bounds.left + bounds.right) / 2,
+    y: (bounds.top + bounds.bottom) / 2,
+  };
+
+  const handleRotateMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Use the editor's rotation system
+    editor.startRotation(e, selectionCenter.x, selectionCenter.y);
+  };
 
   const handleMouseDown =
     (handlePosition: HandlePosition) => (e: React.MouseEvent) => {
@@ -177,6 +224,7 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
         id: node.id,
         position: [...node.position!],
         size: [...node.size!],
+        rotation: node.rotation ?? 0,
       }));
 
       setResizeState({
@@ -245,6 +293,12 @@ export const SelectionBounds = ({ editor }: { editor: UseOcifEditor }) => {
       <ResizeHandle
         position="middle-right"
         onMouseDown={handleMouseDown("middle-right")}
+      />
+
+      {/* Rotate handle */}
+      <div
+        className="ocif-selection-bounds-rotate-handle"
+        onMouseDown={handleRotateMouseDown}
       />
     </div>
   );
