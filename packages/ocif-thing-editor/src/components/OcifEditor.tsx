@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useMouseEvents } from "../hooks/useMouseEvents";
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
 import {
   getPerfectPointsFromPoints,
@@ -15,6 +16,9 @@ import { ZoomControls } from "./ZoomControls";
 
 export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
   const { handleKeyDown, handleKeyUp } = useKeyboardShortcuts({ editor });
+  const { handleMouseDown, handleMouseMove, handleMouseUp } = useMouseEvents({
+    editor,
+  });
 
   return (
     <div
@@ -32,10 +36,10 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
             editor.mode === "oval" ||
             editor.mode === "draw",
         })}
-        onMouseDown={editor.handleMouseDown}
-        onMouseMove={editor.handleMouseMove}
-        onMouseUp={editor.handleMouseUp}
-        onMouseLeave={editor.handleMouseUp}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         tabIndex={0}
       >
         <div
