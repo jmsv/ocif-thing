@@ -1,5 +1,12 @@
 # ocif-thing-editor
 
+## 0.0.3
+
+### Patch Changes
+
+- e836c50: update font family
+- 4bf9752: better package.json
+
 ## 0.0.2
 
 ### Patch Changes

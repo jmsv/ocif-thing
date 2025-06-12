@@ -1,6 +1,6 @@
 {
   "name": "ocif-thing-editor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "React component library for editing OCIF (Open Canvas Interchange Format) documents",
   "keywords": [
     "ocif",
