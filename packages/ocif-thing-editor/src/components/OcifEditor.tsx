@@ -1,20 +1,40 @@
+import { useEffect } from "react";
+
 import clsx from "clsx";
 
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useMouseEvents } from "../hooks/useMouseEvents";
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import { usePlugins } from "../hooks/usePlugins";
 import {
   getPerfectPointsFromPoints,
   getSvgPathFromPoints,
 } from "../utils/drawing";
 import { NodeContainer } from "./NodeContainer";
+import { PluginToolbar } from "./PluginToolbar";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { SelectionBounds } from "./SelectionBounds";
 import { SelectionPreview } from "./SelectionPreview";
-import { Toolbar } from "./Toolbar";
 import { ZoomControls } from "./ZoomControls";
 
 export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
-  const { handleKeyDown, handleKeyUp } = useKeyboardShortcuts({ editor });
+  const pluginManager = usePlugins();
+  const { handleKeyDown, handleKeyUp } = useKeyboardShortcuts({
+    editor,
+    pluginManager,
+  });
+  const { handleMouseDown, handleMouseMove, handleMouseUp } = useMouseEvents({
+    editor,
+  });
+
+  // Plugin lifecycle management
+  useEffect(() => {
+    pluginManager.activatePlugins(editor);
+
+    return () => {
+      pluginManager.deactivatePlugins(editor);
+    };
+  }, [pluginManager, editor]);
 
   return (
     <div
@@ -32,10 +52,10 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
             editor.mode === "oval" ||
             editor.mode === "draw",
         })}
-        onMouseDown={editor.handleMouseDown}
-        onMouseMove={editor.handleMouseMove}
-        onMouseUp={editor.handleMouseUp}
-        onMouseLeave={editor.handleMouseUp}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         tabIndex={0}
       >
         <div
@@ -48,6 +68,7 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
               node={node}
               document={editor.document}
               editor={editor}
+              pluginManager={pluginManager}
             />
           ))}
 
@@ -69,7 +90,7 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
         <SelectionPreview editor={editor} />
         <PropertiesPanel editor={editor} />
         <ZoomControls editor={editor} />
-        <Toolbar editor={editor} />
+        <PluginToolbar editor={editor} pluginManager={pluginManager} />
       </div>
     </div>
   );

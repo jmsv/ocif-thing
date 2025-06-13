@@ -37,11 +37,10 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
         ? { ...position, x: numValue }
         : { ...position, y: numValue };
     setPosition(newPosition);
-    editor.updateNodeGeometry(
-      selectedNode.id,
-      [newPosition.x, newPosition.y],
-      [size.width, size.height]
-    );
+    editor.updateNodeProperties(selectedNode.id, {
+      position: [newPosition.x, newPosition.y],
+      size: [size.width, size.height],
+    });
   };
 
   const handleSizeChange = (dimension: "width" | "height", value: string) => {
@@ -51,11 +50,10 @@ export const PropertiesPanel = ({ editor }: { editor: UseOcifEditor }) => {
         ? { ...size, width: numValue }
         : { ...size, height: numValue };
     setSize(newSize);
-    editor.updateNodeGeometry(
-      selectedNode.id,
-      [position.x, position.y],
-      [newSize.width, newSize.height]
-    );
+    editor.updateNodeProperties(selectedNode.id, {
+      position: [position.x, position.y],
+      size: [newSize.width, newSize.height],
+    });
   };
 
   return (
