@@ -1,107 +1,60 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
-import {
-  startCanvasDrag,
-  updateCanvasDrag,
-} from "../actions/canvasDragActions";
-import {
-  finishNodeDragging,
-  updateNodeDragging,
-} from "../actions/nodeDraggingActions";
-import {
-  finishPathDrawing,
-  startPathDrawing,
-  updatePathDrawing,
-} from "../actions/pathDrawingActions";
-import { finishRotation, updateRotation } from "../actions/rotationActions";
-import {
-  finishSelection,
-  startSelection,
-  updateSelection,
-} from "../actions/selectionActions";
-import {
-  finishShapeDrawing,
-  startShapeDrawing,
-  updateShapeDrawing,
-} from "../actions/shapeDrawingActions";
+import type { EditorEvent } from "../plugins/types";
 import type { UseOcifEditor } from "./useOcifEditor";
+import { usePlugins } from "./usePlugins";
 
 interface UseMouseEventsProps {
   editor: UseOcifEditor;
 }
 
 export const useMouseEvents = ({ editor }: UseMouseEventsProps) => {
-  const [drawingNodeId, setDrawingNodeId] = useState<string | null>(null);
+  const pluginManager = usePlugins();
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      const { mode, editorState } = editor;
+      // Create plugin event
+      const event: EditorEvent = {
+        type: "mousedown",
+        originalEvent: e,
+        editor,
+      };
 
-      if (mode === "hand") {
-        startCanvasDrag(editor, e);
-      } else if (mode === "select" && !editorState.isDraggingNodes) {
-        startSelection(editor, e);
-      } else if (mode === "rectangle" || mode === "oval") {
-        const nodeId = startShapeDrawing(editor, e, mode);
-        setDrawingNodeId(nodeId || null);
-      } else if (mode === "draw") {
-        startPathDrawing(editor, e);
-      }
+      // All mouse down events are now handled by plugins
+      pluginManager.handleEvent(event);
     },
-    [editor]
+    [editor, pluginManager]
   );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      const { mode, editorState } = editor;
+      // Create plugin event
+      const event: EditorEvent = {
+        type: "mousemove",
+        originalEvent: e,
+        editor,
+      };
 
-      if (editorState.isDragging && mode === "hand") {
-        updateCanvasDrag(editor, e);
-      } else if (editorState.isSelecting && mode === "select") {
-        updateSelection(editor, e);
-      } else if (editorState.isDraggingNodes && mode === "select") {
-        updateNodeDragging(editor, e);
-      } else if (editorState.isRotating && mode === "select") {
-        updateRotation(editor, e);
-      } else if (editorState.isDrawingShape && drawingNodeId) {
-        updateShapeDrawing(editor, e, drawingNodeId);
-      } else if (editorState.drawingPoints && mode === "draw") {
-        updatePathDrawing(editor, e);
-      }
+      // All mouse move events are now handled by plugins
+      pluginManager.handleEvent(event);
     },
-    [editor, drawingNodeId]
+    [editor, pluginManager]
   );
 
   const handleMouseUp = useCallback(() => {
-    const { mode, editorState } = editor;
+    const { mode } = editor;
 
-    // Handle shape drawing completion
-    if (editorState.isDrawingShape && drawingNodeId) {
-      finishShapeDrawing(editor, drawingNodeId);
-      setDrawingNodeId(null);
-    }
+    // Create plugin event
+    const event: EditorEvent = {
+      type: "mouseup",
+      originalEvent: {} as React.MouseEvent, // Mock event since we don't have the original
+      editor,
+    };
 
-    // Handle path drawing completion
-    if (editorState.drawingPoints) {
-      finishPathDrawing(editor);
-    }
+    // Plugins handle their own cleanup
+    pluginManager.handleEvent(event);
 
-    // Handle selection completion
-    if (editorState.isSelecting) {
-      finishSelection(editor);
-    }
-
-    // Handle rotation completion
-    if (editorState.isRotating) {
-      finishRotation(editor);
-    }
-
-    // Handle node dragging completion
-    if (editorState.isDraggingNodes) {
-      finishNodeDragging(editor);
-    }
-
-    // Reset all dragging states
+    // Reset all dragging states - this cleanup logic remains in the core
     editor.setEditorState((prev) => ({
       ...prev,
       isDragging: false,
@@ -118,7 +71,7 @@ export const useMouseEvents = ({ editor }: UseMouseEventsProps) => {
     if (mode === "select") {
       editor.setSelectionBounds(null);
     }
-  }, [editor, drawingNodeId]);
+  }, [editor, pluginManager]);
 
   return {
     handleMouseDown,
