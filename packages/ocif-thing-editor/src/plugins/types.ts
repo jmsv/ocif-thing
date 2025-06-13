@@ -37,79 +37,16 @@ export interface ToolbarItem {
   priority?: number;
 }
 
-export interface PropertyControl {
-  id: string;
-  label: string;
-  component: React.ComponentType<{
-    editor: UseOcifEditor;
-    selectedNodes: Set<string>;
-  }>;
-  applicableToNodeTypes?: string[];
-  priority?: number;
-}
-
-// Props that a node render component receives
-export interface NodeRenderProps {
-  node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
-  document: OcifSchemaBase;
-  editor: UseOcifEditor;
-}
-
-// Union type for all possible property values
-export type PropertyValue =
-  | string
-  | number
-  | boolean
-  | string[]
-  | number[]
-  | Record<string, unknown>
-  | null
-  | undefined;
-
-// Schema for validating properties (JSON Schema-like)
-export interface PropertySchema {
-  type: "string" | "number" | "boolean" | "array" | "object";
-  required?: boolean;
-  default?: PropertyValue;
-  enum?: PropertyValue[];
-  minimum?: number;
-  maximum?: number;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  items?: PropertySchema; // For arrays
-  properties?: Record<string, PropertySchema>; // For objects
-}
-
-export interface NodeTypeDefinition {
-  type: string; // e.g., "@ocif/node/custom-widget"
+// Node extension definition for OCIF-compliant extension rendering
+export interface NodeExtensionDefinition {
+  type: string; // e.g., "@ocif/node/rect", "@ocif/node/oval"
   displayName: string;
-  renderComponent: React.ComponentType<NodeRenderProps>;
-  defaultProperties?: Record<string, PropertyValue>;
-  propertySchema?: Record<string, PropertySchema>;
-}
-
-export interface ContextMenuContext {
-  editor: UseOcifEditor;
-  position: { x: number; y: number };
-  selectedNodes: Set<string>;
-  hoveredNode?: string;
-}
-
-export interface ContextMenuItem {
-  id: string;
-  label: string;
-  icon?: React.ComponentType;
-  onClick?(context: ContextMenuContext): void;
-  separator?: boolean;
-  priority?: number;
-}
-
-export interface UIComponentContribution {
-  id: string;
-  component: React.ComponentType<{ editor: UseOcifEditor }>;
-  position: "overlay" | "sidebar" | "bottom-panel" | "top-panel";
-  priority?: number;
+  renderComponent: React.ComponentType<{
+    node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
+    extension: Record<string, unknown>; // The extension data from node.data[]
+    document: OcifSchemaBase;
+    editor: UseOcifEditor;
+  }>;
 }
 
 export interface EditorPlugin {
@@ -124,13 +61,7 @@ export interface EditorPlugin {
 
   // UI contributions
   addToolbarItems?(): ToolbarItem[];
-  addPropertyControls?(
-    selectedNodes: Set<string>,
-    editor: UseOcifEditor
-  ): PropertyControl[];
-  addNodeTypes?(): NodeTypeDefinition[];
-  addContextMenuItems?(context: ContextMenuContext): ContextMenuItem[];
-  addUIComponents?(): UIComponentContribution[];
+  addNodeExtensions?(): NodeExtensionDefinition[]; // OCIF-compliant extensions
   addKeyboardShortcuts?(): KeyboardShortcut[];
 
   // Plugin lifecycle

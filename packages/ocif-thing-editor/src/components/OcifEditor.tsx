@@ -68,6 +68,7 @@ export const OcifEditor = ({ editor }: { editor: UseOcifEditor }) => {
               node={node}
               document={editor.document}
               editor={editor}
+              pluginManager={pluginManager}
             />
           ))}
 

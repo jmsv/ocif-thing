@@ -2,20 +2,23 @@ import clsx from "clsx";
 import type { OcifSchemaBase } from "ocif-thing-schema";
 
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
+import type { PluginManager } from "../plugins/PluginManager";
 import { baseNodeStyles } from "../utils/node";
-import { NodeExtension } from "./NodeExtension";
 import { NodeResource } from "./NodeResource";
+import { PluginNodeExtension } from "./PluginNodeExtension";
 
 interface NodeContainerProps {
   node: Exclude<OcifSchemaBase["nodes"], undefined>[number];
   document: OcifSchemaBase;
   editor: UseOcifEditor;
+  pluginManager: PluginManager;
 }
 
 export const NodeContainer = ({
   node,
   document,
   editor,
+  pluginManager,
 }: NodeContainerProps) => {
   const { selectedNodes, setSelectedNodes, mode, startNodeDrag } = editor;
 
@@ -75,10 +78,13 @@ export const NodeContainer = ({
         }}
       >
         {extensions.map((extension) => (
-          <NodeExtension
+          <PluginNodeExtension
             key={extension.type}
             node={node}
             extension={extension}
+            document={document}
+            editor={editor}
+            pluginManager={pluginManager}
           />
         ))}
 

@@ -1,14 +1,10 @@
 import type { UseOcifEditor } from "../hooks/useOcifEditor";
 import type {
-  ContextMenuContext,
-  ContextMenuItem,
   EditorEvent,
   EditorPlugin,
   KeyboardShortcut,
-  NodeTypeDefinition,
-  PropertyControl,
+  NodeExtensionDefinition,
   ToolbarItem,
-  UIComponentContribution,
 } from "./types";
 
 export class PluginManager {
@@ -69,35 +65,14 @@ export class PluginManager {
       .sort((a, b) => (b.priority || 0) - (a.priority || 0));
   }
 
-  getPropertyControls(
-    selectedNodes: Set<string>,
-    editor: UseOcifEditor
-  ): PropertyControl[] {
-    return this.plugins
-      .flatMap((p) => p.addPropertyControls?.(selectedNodes, editor) || [])
-      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
-  }
-
-  getNodeTypes(): Map<string, NodeTypeDefinition> {
-    const nodeTypes = new Map<string, NodeTypeDefinition>();
+  getNodeExtensions(): Map<string, NodeExtensionDefinition> {
+    const nodeExtensions = new Map<string, NodeExtensionDefinition>();
     for (const plugin of this.plugins) {
-      for (const nodeType of plugin.addNodeTypes?.() || []) {
-        nodeTypes.set(nodeType.type, nodeType);
+      for (const extension of plugin.addNodeExtensions?.() || []) {
+        nodeExtensions.set(extension.type, extension);
       }
     }
-    return nodeTypes;
-  }
-
-  getContextMenuItems(context: ContextMenuContext): ContextMenuItem[] {
-    return this.plugins
-      .flatMap((p) => p.addContextMenuItems?.(context) || [])
-      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
-  }
-
-  getUIComponents(): UIComponentContribution[] {
-    return this.plugins
-      .flatMap((p) => p.addUIComponents?.() || [])
-      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    return nodeExtensions;
   }
 
   getKeyboardShortcuts(): KeyboardShortcut[] {
