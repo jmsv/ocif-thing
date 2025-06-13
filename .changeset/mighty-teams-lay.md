@@ -2,4 +2,4 @@
 "ocif-thing-editor": patch
 ---
 
-rotation
+Plugin-based editor logic and node rotation support
